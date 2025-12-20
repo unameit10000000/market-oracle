@@ -10,7 +10,7 @@ Thanks for your interest in contributing! We welcome all contributions.
 2. **Create a branch** for your changes (`git checkout -b feature/your-idea`)
 3. **Make your changes** and test them
 4. **Commit** with a clear message
-5. **Push** to your fork and open a Pull Request
+5. **Push** to your fork and open a Pull Request targeting the `dev` branch
 
 ### What You Can Contribute
 
