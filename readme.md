@@ -1,5 +1,7 @@
 # Market Oracle 🔮
 
+<img src="images/3.png" alt="Market Oracle" width="200">
+
 **AI-Powered Crypto Market Analysis & Prediction Tool**
 
 Market Oracle is an intelligent cryptocurrency market analysis system that combines economic calendar data, YouTube analyst transcripts, and historical event analysis to generate actionable trading insights and short-term price predictions for Bitcoin, XRP, and other major cryptocurrencies.
