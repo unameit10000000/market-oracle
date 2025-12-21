@@ -36,13 +36,9 @@ Content-Type: application/json
 
 {
   "youtube_urls": [
-    "https://www.youtube.com/watch?v=bgV5FnP8gpA",
-    "https://www.youtube.com/watch?v=FZyVMrIZ26Q",
-    "https://www.youtube.com/watch?v=OMe51EPE844",
-    "https://www.youtube.com/watch?v=nwhBTCeeT7Y",
-    "https://www.youtube.com/watch?v=Dcw-A0iZjuc",
-    "https://www.youtube.com/watch?v=9zgnpjM3J1I",
-    "https://www.youtube.com/watch?v=-m-2wAhiB1k"
+    "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+    "https://www.youtube.com/watch?v=jNQXAC9IVRw",
+    "https://www.youtube.com/watch?v=9bZkp7q19f0"
   ]
 }
 
@@ -54,7 +50,7 @@ Content-Type: application/json
 
 {
   "youtube_urls": [
-    "https://www.youtube.com/watch?v=bgV5FnP8gpA"
+    "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
   ]
 }
 
