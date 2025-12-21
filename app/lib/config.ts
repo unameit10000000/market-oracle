@@ -1,0 +1,10 @@
+const NEXT_PUBLIC_API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000"
+
+console.log("NEXT_PUBLIC_API_BASE_URL:", NEXT_PUBLIC_API_BASE_URL)
+
+const API_CONFIG = {
+  BASE_URL: NEXT_PUBLIC_API_BASE_URL,
+}
+
+export default API_CONFIG
+

@@ -1,0 +1,169 @@
+### Market Oracle API Tests
+### 
+### NOTE: API keys must be configured in .env file (never in request body for security)
+### All configuration fields in requests are optional - API keys come from .env
+###
+### WORKFLOW (3 Steps):
+### 1. Call /validate endpoint with YouTube URLs (returns analysis_id and validation results)
+### 2. Call /analyze endpoint with analysis_id and optional economic calendar config
+### 3. Call /process endpoint with analysis_id to get CSV data and full analysis
+
+### Variables
+@baseUrl = http://localhost:5000
+@analysisId = 20251220_212438
+### ^ Update this variable with the analysis_id from /validate response
+
+### ============================================================================
+### GET STATUS
+### ============================================================================
+
+GET {{baseUrl}}/
+Content-Type: application/json
+
+###
+
+### ============================================================================
+### STEP 1: VALIDATE YOUTUBE TRANSCRIPTS (Returns analysis_id)
+### ============================================================================
+
+### Validate YouTube URLs - Multiple URLs
+### This is the FIRST endpoint to call. It validates YouTube URLs, extracts transcripts,
+### creates an analysis directory, and returns validation results with analysis_id.
+### 
+### IMPORTANT: Copy the "analysis_id" value and use it in the /analyze endpoint!
+POST {{baseUrl}}/validate
+Content-Type: application/json
+
+{
+  "youtube_urls": [
+    "https://www.youtube.com/watch?v=bgV5FnP8gpA",
+    "https://www.youtube.com/watch?v=FZyVMrIZ26Q",
+    "https://www.youtube.com/watch?v=OMe51EPE844",
+    "https://www.youtube.com/watch?v=nwhBTCeeT7Y",
+    "https://www.youtube.com/watch?v=Dcw-A0iZjuc",
+    "https://www.youtube.com/watch?v=9zgnpjM3J1I",
+    "https://www.youtube.com/watch?v=-m-2wAhiB1k"
+  ]
+}
+
+###
+
+### Validate YouTube URLs - Single URL (for testing)
+POST {{baseUrl}}/validate
+Content-Type: application/json
+
+{
+  "youtube_urls": [
+    "https://www.youtube.com/watch?v=bgV5FnP8gpA"
+  ]
+}
+
+###
+
+### ============================================================================
+### STEP 2: RUN ANALYSIS (Requires analysis_id from /validate)
+### ============================================================================
+
+### Run Analysis - Minimal (Only analysis_id, uses defaults from .env)
+### NOTE: This endpoint requires analysis_id from /validate endpoint.
+POST {{baseUrl}}/analyze
+Content-Type: application/json
+
+{
+  "analysis_id": "{{analysisId}}"
+}
+
+###
+
+### Run Analysis - With Full Configuration
+POST {{baseUrl}}/analyze
+Content-Type: application/json
+
+{
+  "analysis_id": "{{analysisId}}",
+  "forexfactory_start_date": "2025-12-14",
+  "forexfactory_use_week": true,
+  "tradingeconomics_start_date": "2025-12-15",
+  "tradingeconomics_end_date": "2025-12-21"
+}
+
+###
+
+### ============================================================================
+### STEP 3: PROCESS ANALYSIS (Generate CSV from analysis_id)
+### ============================================================================
+
+### Process Analysis - Generate CSV
+### IMPORTANT: Update @analysisId variable at the top of this file with the analysis_id from /validate response
+### This endpoint will:
+### - Read comprehensive_analysis.txt from the analysis directory
+### - Generate CSV data from the analysis
+### - Return both CSV data and full comprehensive analysis
+POST {{baseUrl}}/process
+Content-Type: application/json
+
+{
+  "analysis_id": "{{analysisId}}"
+}
+
+###
+
+### ============================================================================
+### ADDITIONAL ENDPOINTS
+### ============================================================================
+
+### Ask AI about a specific event
+### Uses web search to provide current information about an event
+POST {{baseUrl}}/ask-ai
+Content-Type: application/json
+
+{
+  "question": "What is the current status of this event?",
+  "event": {
+    "Token": "Bitcoin",
+    "Date": "2025-12-25",
+    "Event_Type": "Listed",
+    "Title": "Fed Interest Rate Decision",
+    "Event_Description": "Federal Reserve interest rate decision"
+  },
+  "analysis_id": "{{analysisId}}",
+  "max_searches": 5,
+  "max_tokens": 4000
+}
+
+###
+
+### Web Search - Basic Example
+### Performs a web search using the AI API (Anthropic or OpenRouter)
+POST {{baseUrl}}/websearch
+Content-Type: application/json
+
+{
+  "prompt": "What are the latest Bitcoin price predictions for 2025?",
+  "max_searches": 5,
+  "max_tokens": 4000
+}
+
+###
+
+### Web Search - With Domain Filtering (Anthropic Only)
+### Restricts search to trusted financial news sources
+### Note: Domain filtering only works with Anthropic API, not OpenRouter
+POST {{baseUrl}}/websearch
+Content-Type: application/json
+
+{
+  "prompt": "What are the latest Bitcoin and XRP price predictions and market analysis?",
+  "allowed_domains": [
+    "coindesk.com",
+    "cointelegraph.com",
+    "bloomberg.com",
+    "reuters.com",
+    "cnbc.com",
+    "forbes.com"
+  ],
+  "max_searches": 5,
+  "max_tokens": 4000
+}
+
+###
