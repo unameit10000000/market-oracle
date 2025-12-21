@@ -4,220 +4,155 @@
 
 Market Oracle is an intelligent cryptocurrency market analysis system that combines economic calendar data, YouTube analyst transcripts, and historical event analysis to generate actionable trading insights and short-term price predictions for Bitcoin, XRP, and other major cryptocurrencies.
 
-## 🌟 Features
+## 🏗️ Architecture
 
-### 📅 Economic Calendar Integration
-- **ForexFactory Scraper**: Automatically scrapes economic events from ForexFactory calendar
-- **TradingEconomics Scraper**: Extracts events from TradingEconomics calendar
-- **Date Filtering**: Configurable date ranges for targeted event analysis
-- **Event Parsing**: Extracts event details including dates, countries, impact levels, and forecasts
+Market Oracle consists of two separate applications that work together:
 
-### 🎥 YouTube Transcript Analysis
-- **Automated Transcript Extraction**: Downloads and processes YouTube video transcripts using `yt-dlp`
-- **Multi-Video Support**: Processes multiple analyst videos simultaneously
-- **Content Deduplication**: Intelligently removes duplicate content from transcripts
-- **Analyst Insights**: Extracts predictions, scenarios, and technical analysis from crypto analyst videos
+- **`/api`** - Python Flask REST API that handles data scraping, AI analysis, and processing
+- **`/app`** - Next.js frontend application that provides a user interface for interacting with the API
 
-### 🤖 AI-Powered Analysis
-- **Historical Event Analysis**: Uses Anthropic Claude AI to analyze historical market events (2020-2025) and their impact on crypto prices
-- **Pattern Recognition**: Identifies correlations between economic events and price movements
-- **Short-Term Predictions**: Generates directional predictions (PUMP/DUMP) with magnitude estimates based on historical precedents
-- **Comprehensive Reports**: Creates detailed analysis reports combining all data sources
-
-### 📊 Prediction Engine
-- **Directional Predictions**: Makes clear directional calls (PUMP, DUMP, MAJOR PUMP, MAJOR DUMP, CRITICAL PUMP, CRITICAL DUMP)
-- **Conditional Predictions**: Handles conditional scenarios (e.g., "PUMP IF CUT", "DUMP IF WEAK")
-- **Magnitude Estimates**: Provides percentage-based magnitude estimates (e.g., 3-5%, 4-8%) based on historical patterns
-- **Risk Assessment**: Includes risk management advice and scenario probabilities
+Both applications must be running simultaneously for the system to work.
 
 ## 🚀 Quick Start
 
 ### Prerequisites
-- Python 3.8+
-- Anthropic API key (for AI analysis)
+
+- **Python 3.8+** (for API)
+- **Node.js 18+** and **pnpm/npm** (for frontend)
+- **Anthropic API key** or **OpenRouter API key** (for AI analysis)
 - Internet connection (for scraping and YouTube downloads)
 
-### Installation
-
-1. **Clone the repository**
-   ```bash
-   git clone <repository-url>
-   cd cryptowizard
-   ```
-
-2. **Create a virtual environment**
-   ```bash
-   python -m venv venv
-   ```
-
-3. **Activate the virtual environment**
-   - Windows:
-     ```bash
-     venv\Scripts\activate
-     ```
-   - Linux/Mac:
-     ```bash
-     source venv/bin/activate
-     ```
-
-4. **Install dependencies**
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-5. **Set up environment variables**
-   Copy `.env.template` to `.env` and configure your settings:
-   ```bash
-   cp .env.template .env
-   ```
-   
-   Then edit `.env` and set your configuration values. See `.env.template` for all available options.
-
-### Configuration
-
-All configuration is done through the `.env` file. Copy `.env.template` to `.env` and customize the following:
-
-1. **Anthropic API Key** (required)
-   ```env
-   ANTHROPIC_API_KEY=your_anthropic_api_key_here
-   ```
-   Get your API key from: https://console.anthropic.com/
-
-2. **ForexFactory Configuration**
-   ```env
-   # Start date for ForexFactory scraping (format: YYYY-MM-DD)
-   # Leave empty or set to "None" to use current week
-   FOREXFACTORY_START_DATE=2025-12-14
-   
-   # Whether to use week-based scraping (true) or day-based scraping (false)
-   FOREXFACTORY_USE_WEEK=true
-   ```
-
-3. **TradingEconomics Configuration**
-   ```env
-   # Start date for TradingEconomics scraping (format: YYYY-MM-DD)
-   # Leave empty or set to "None" to use default recent dates
-   TRADINGECONOMICS_START_DATE=2025-12-15
-   
-   # End date for TradingEconomics scraping (format: YYYY-MM-DD)
-   TRADINGECONOMICS_END_DATE=2025-12-21
-   ```
-
-4. **YouTube URLs**
-   ```env
-   # Comma-separated list of YouTube URLs to extract transcripts from
-   YOUTUBE_URLS=https://www.youtube.com/watch?v=VIDEO_ID_1,https://www.youtube.com/watch?v=VIDEO_ID_2
-   ```
-
-See `.env.template` for a complete example with all configuration options and detailed comments.
-
-### Usage
-
-Run the full analysis pipeline:
+### 1. Start the API Server
 
 ```bash
-python main.py
+cd api
+
+# Create and activate virtual environment
+python -m venv env
+# Windows:
+env\Scripts\activate
+# Linux/Mac:
+source env/bin/activate
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Set up environment variables
+# Create a .env file in the /api directory with:
+# ANTHROPIC_API_KEY=your_key_here
+# or
+# AI_API_TYPE=OPENROUTER
+# OPENROUTER_API_KEY=your_key_here
+
+# Run the API server
+python main.py --api
 ```
 
-This will:
-1. Scrape economic calendars from ForexFactory and TradingEconomics
-2. Extract YouTube transcripts from configured videos
-3. Analyze historical events using AI
-4. Process all data and generate comprehensive analysis
-5. Save all outputs to `analysis/<timestamp>/` directory
+The API will start on `http://localhost:5000`
 
-### Output Structure
+### 2. Start the Frontend App
 
-Each analysis run creates a timestamped directory with:
+```bash
+cd app
 
-```
-analysis/
-└── YYYYMMDD_HHMMSS/
-    ├── forexfactory_events.json          # Scraped ForexFactory events
-    ├── tradingeconomics_events.json      # Scraped TradingEconomics events
-    ├── historic_events_analysis.txt      # AI analysis of historical events
-    ├── recent_events_analysis.txt         # AI analysis of recent events
-    ├── comprehensive_analysis.txt        # Full combined analysis
-    ├── ai_prompt.txt                     # Full AI prompt used
-    ├── *_transcript.txt                  # Individual YouTube transcripts
-    └── analysis/                         # VTT subtitle files
+# Install dependencies
+pnpm install
+# or
+npm install
+
+# Set up environment variables
+# Create a .env.local file in the /app directory with:
+# NEXT_PUBLIC_API_BASE_URL=http://localhost:5000
+
+# Run the development server
+pnpm dev
+# or
+npm run dev
 ```
 
-### 📌 Final Analysis Result
+The frontend will start on `http://localhost:3000`
 
-> **The final comprehensive analysis result is saved to:** `analysis/<datetime>/comprehensive_analysis.txt`
->
-> This file contains the complete AI-powered analysis combining:
-> - Economic calendar events (ForexFactory & TradingEconomics)
-> - YouTube analyst transcripts and insights
-> - Historical event pattern analysis
-> - Directional predictions with magnitude estimates
-> - Risk assessment and scenario analysis
+### 3. Use the Application
 
-## 📋 Key Components
+1. Open `http://localhost:3000` in your browser
+2. Add YouTube video URLs to analyze
+3. Click "Validate" to extract transcripts
+4. Click "Analyze" to run AI analysis with economic calendar data
+5. Click "Process" to generate CSV data
+6. View the comprehensive dashboard with insights
 
-### Economic Calendar Scrapers
-- **`scrape_forexfactory()`**: Scrapes ForexFactory calendar events
-- **`scrape_tradingeconomics()`**: Scrapes TradingEconomics calendar events
-- Both support date filtering and return structured event data
+## 📚 Documentation
 
-### YouTube Transcript Processing
-- **`extract_youtube_transcripts()`**: Downloads and extracts transcripts from multiple videos
-- **`collect_transcripts()`**: Combines all transcripts into a single text
-- **`extract_vtt_content()`**: Parses VTT subtitle files and removes duplicates
+For detailed documentation about each component:
 
-### AI Analysis Functions
-- **`get_historic_events()`**: Analyzes historical market events and their impact
-- **`insert_recently_predicted_events()`**: Analyzes recent events and price correlations
-- **`process_events()`**: Combines all data sources into comprehensive analysis
+- **[API Documentation](./api/readme.md)** - Complete API documentation, endpoints, configuration, and architecture
+- **[Frontend Documentation](./app/README.md)** - Frontend architecture, components, workflow, and usage
 
-## 🎯 Use Cases
+## 🌟 Key Features
 
-- **Traders**: Get AI-powered predictions on upcoming economic events and their potential impact on crypto prices
-- **Analysts**: Combine multiple data sources (economic calendars, analyst videos, historical patterns) in one place
-- **Researchers**: Study correlations between economic events and cryptocurrency price movements
-- **Content Creators**: Extract and analyze insights from multiple crypto analyst videos simultaneously
+- **Economic Calendar Integration** - Scrapes events from ForexFactory and TradingEconomics
+- **YouTube Transcript Analysis** - Extracts and analyzes crypto analyst video transcripts
+- **AI-Powered Predictions** - Uses Claude AI to generate directional predictions with magnitude estimates
+- **Historical Pattern Analysis** - Analyzes correlations between economic events and crypto price movements
+- **Interactive Dashboard** - Visualize predictions, price targets, event timelines, and data tables
 
-## 🔧 Technical Details
+## 🔧 Configuration
 
-### Dependencies
-- `beautifulsoup4`: HTML parsing for web scraping
-- `requests`: HTTP requests for web scraping
-- `anthropic`: Anthropic Claude AI API client
-- `python-dotenv`: Environment variable management
-- `yt-dlp`: YouTube video and subtitle downloading
+### API Configuration
 
-### AI Model
-- Uses **Claude Sonnet 4.5** (claude-sonnet-4-5-20250929)
-- Max tokens: 32,000-56,000 depending on analysis type
-- Streaming responses for real-time output
+All API configuration is done through a `.env` file in the `/api` directory. See [API Documentation](./api/readme.md) for complete configuration options.
 
-## 📝 Notes
+**Required:**
+- `ANTHROPIC_API_KEY` or `OPENROUTER_API_KEY` (depending on `AI_API_TYPE`)
 
-- The app uses HTML files from `temp/htmlsources/` for testing scraping logic
-- In production, it fetches live data from ForexFactory and TradingEconomics
-- YouTube transcripts are cached locally to avoid re-downloading
-- All analysis outputs are timestamped and saved for historical reference
+**Optional:**
+- `FOREXFACTORY_START_DATE` - Start date for ForexFactory scraping
+- `FOREXFACTORY_USE_WEEK` - Use week-based scraping (default: true)
+- `TRADINGECONOMICS_START_DATE` - Start date for TradingEconomics scraping
+- `TRADINGECONOMICS_END_DATE` - End date for TradingEconomics scraping
+
+### Frontend Configuration
+
+Frontend configuration is done through a `.env.local` file in the `/app` directory.
+
+**Required:**
+- `NEXT_PUBLIC_API_BASE_URL` - URL of the API server (default: `http://localhost:5000`)
+
+## 📋 Workflow
+
+1. **Validate** - User adds YouTube URLs → Frontend sends to API → API validates URLs and extracts transcripts → Returns `analysis_id`
+2. **Analyze** - Frontend sends `analysis_id` + calendar config → API scrapes economic calendars → API runs AI analysis → Saves results
+3. **Process** - Frontend sends `analysis_id` → API generates CSV data from analysis → Returns CSV + comprehensive analysis
+4. **Dashboard** - Frontend displays interactive dashboard with charts, tables, and insights
+
+## ⚠️ Important Notes
+
+- **Both applications must be running** - The frontend requires the API to be running on the configured port
+- **API keys are server-side only** - Never send API keys in request bodies; they must be configured in the API's `.env` file
+- **Analysis results are stored** - Each analysis creates a timestamped directory in `api/analysis/` with all outputs
+- **CORS is configured** - The API allows requests from `http://localhost:3000` and `http://127.0.0.1:3000`
+
+## 📝 Roadmap & Wishlist
+
+Future improvements and features we'd like to implement:
+
+- [ ] **Telegram-based price signals** - Integrate Telegram bot to send real-time price signals and alerts based on analysis results
+- [ ] **Database integration** - Migrate from file-based storage to PostgreSQL database for better data management, querying, and persistence
+- [ ] *More features coming soon...*
+
+Have ideas? We'd love to hear them! See [Contributing](#-contributing) below.
 
 ## 🤝 Contributing
 
-We welcome all contributions! Whether it's fixing bugs, adding features, improving documentation, or adding new data sources - every contribution helps.
-
-**Quick start:**
-1. Check out [contributing.md](contributing.md) for simple guidelines
-2. Fork the repo, create a branch, make your changes
-3. Test locally and submit a pull request
-
-See our [code of conduct](code-of-conduct.md) for community guidelines.
+We welcome contributions! See:
+- [Contributing Guidelines](./api/contributing.md)
+- [Code of Conduct](./api/code-of-conduct.md)
 
 ## ⚠️ Disclaimer
 
 This tool is for informational and research purposes only. The predictions and analysis generated by Market Oracle are based on historical patterns and AI analysis, not financial advice. Always do your own research and consult with financial professionals before making trading decisions. Cryptocurrency trading involves substantial risk of loss.
 
-## 📄 License
-
-[Add your license here]
-
 ---
 
 **Built with ❤️ for the crypto trading community**
+

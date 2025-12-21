@@ -2,5 +2,4 @@
 venv/
 temp/
 analysis/*
-example-apps/
 !analysis/.gitkeep

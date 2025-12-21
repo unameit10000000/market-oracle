@@ -98,18 +98,91 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# Initialize Anthropic client
+# AI API Type configuration
+AI_API_TYPE = os.getenv('AI_API_TYPE', 'ANTHROPIC')
+logger.info(f"AI API Type set to: {AI_API_TYPE}")
+
+# Model lists for each API type
+OPENROUTER_MODELS = [
+    "anthropic/claude-sonnet-4.5",
+    "anthropic/claude-opus-4.5", 
+    "anthropic/claude-3.5-sonnet",
+    "anthropic/claude-3-sonnet",
+    "anthropic/claude-3-opus",
+    "anthropic/claude-3.7-sonnet",
+    "openai/gpt-5.1",
+    "openai/gpt-5-nano",
+    "openai/gpt-5.2",
+    "openai/gpt-5.2-pro",
+    "openai/gpt-5.1-codex-max",
+    "openai/gpt-4",
+    "openai/gpt-4o-mini",
+    "openai/o3-mini",
+    "google/gemini-3-pro-preview",
+    "google/gemini-2.5-pro-preview",
+    "deepseek/deepseek-v3.2",
+    "deepseek/deepseek-r1",
+    "minimax/minimax-m2:exacto",
+    "openrouter/auto",
+    "openrouter/bodybuilder"
+]
+
+ANTHROPIC_MODELS = [
+    "claude-opus-4-1",                 # alias for latest 4.1 snapshot
+    "claude-opus-4-1-20250805",        # specific snapshot
+    "claude-opus-4",                   # alias for latest 4.0 snapshot
+    "claude-opus-4-20250514",          # specific snapshot
+    "claude-sonnet-4",                 # alias for Sonnet-4
+    "claude-sonnet-4-20250514",        # specific snapshot
+    # Claude 3.7 Sonnet
+    "claude-3-7-sonnet",               # alias
+    "claude-3-7-sonnet-20250219",      # specific snapshot
+    # Claude 3.5 – two variants
+    "claude-3-5-sonnet",               # alias for Sonnet 3.5
+    "claude-3-5-sonnet-20241022",      # specific snapshot
+    "claude-3-5-haiku",                # alias for Haiku 3.5
+    "claude-3-5-haiku-20241022",       # specific snapshot
+    # Older smaller models (still available)
+    "claude-3-haiku",                  # alias
+    "claude-3-haiku-20240307",         # specific snapshot
+]
+
+# Default models (latest Sonnet for each API type)
+DEFAULT_OPENROUTER_MODEL = "anthropic/claude-sonnet-4.5"
+DEFAULT_ANTHROPIC_MODEL = "claude-sonnet-4"
+
+# Get the default model based on API type
+DEFAULT_MODEL = DEFAULT_OPENROUTER_MODEL if AI_API_TYPE == 'OPENROUTER' else DEFAULT_ANTHROPIC_MODEL
+
+# Initialize API keys and client (define both at module level to avoid NameError)
 ANTHROPIC_API_KEY = os.getenv('ANTHROPIC_API_KEY')
+OPENROUTER_API_KEY = os.getenv('OPENROUTER_API_KEY')
+
+# Initialize Anthropic client (or OpenRouter wrapper)
 anthropic_client = None
-if ANTHROPIC_API_KEY:
-    try:
-        anthropic_client = Anthropic(api_key=ANTHROPIC_API_KEY)
-        logger.info("Anthropic client initialized successfully")
-    except Exception as e:
-        logger.warning(f"Failed to initialize Anthropic client: {e}")
-        anthropic_client = None
+if AI_API_TYPE == 'OPENROUTER':
+    if OPENROUTER_API_KEY:
+        try:
+            anthropic_client = Anthropic(
+                api_key=OPENROUTER_API_KEY,
+                base_url="https://openrouter.ai/api"
+            )
+            logger.info("OpenRouter client initialized successfully")
+        except Exception as e:
+            logger.warning(f"Failed to initialize OpenRouter client: {e}")
+            anthropic_client = None
+    else:
+        logger.warning("OPENROUTER_API_KEY not found in .env file")
 else:
-    logger.warning("ANTHROPIC_API_KEY not found in .env file")
+    if ANTHROPIC_API_KEY:
+        try:
+            anthropic_client = Anthropic(api_key=ANTHROPIC_API_KEY)
+            logger.info("Anthropic client initialized successfully")
+        except Exception as e:
+            logger.warning(f"Failed to initialize Anthropic client: {e}")
+            anthropic_client = None
+    else:
+        logger.warning("ANTHROPIC_API_KEY not found in .env file")
 
 # Global variable for analysis directory
 ANALYSIS_DIR = None
@@ -688,7 +761,7 @@ Provide a comprehensive analysis of these historic events and their market impac
     
     try:
         with anthropic_client.messages.stream(
-            model="claude-sonnet-4-5-20250929",
+            model=DEFAULT_MODEL,
             max_tokens=32000,
             messages=[
                 {
@@ -759,7 +832,7 @@ Recent events to analyze:
     
     try:
         with anthropic_client.messages.stream(
-            model="claude-sonnet-4-5-20250929",
+            model=DEFAULT_MODEL,
             max_tokens=32000,
             messages=[
                 {
@@ -993,7 +1066,7 @@ Now provide the analysis in the exact format specified above. Every event in you
         f.write("# Full AI Prompt\n\n")
         f.write(f"Generated: {datetime.now().isoformat()}\n\n")
         f.write("=" * 80 + "\n\n")
-        f.write("MODEL: claude-sonnet-4-5-20250929\n")
+        f.write(f"MODEL: {DEFAULT_MODEL}\n")
         f.write("MAX_TOKENS: 32000\n\n")
         f.write("=" * 80 + "\n\n")
         f.write("USER PROMPT:\n\n")
@@ -1002,7 +1075,7 @@ Now provide the analysis in the exact format specified above. Every event in you
     
     try:
         with anthropic_client.messages.stream(
-            model="claude-sonnet-4-5-20250929",
+            model=DEFAULT_MODEL,
             max_tokens=56000,
             messages=[
                 {
@@ -1021,6 +1094,145 @@ Now provide the analysis in the exact format specified above. Every event in you
     except Exception as e:
         logger.error(f"Error calling Anthropic AI: {e}")
         return f"Error calling Anthropic AI: {str(e)}"
+
+
+def perform_web_search(
+    prompt: str,
+    allowed_domains: Optional[List[str]] = None,
+    blocked_domains: Optional[List[str]] = None,
+    max_searches: int = 5,
+    max_tokens: int = 4000
+) -> str:
+    """
+    Perform a web search using Anthropic or OpenRouter API with optional domain filtering.
+    
+    Args:
+        prompt: The search query/prompt to send to the AI
+        allowed_domains: Optional list of domains to whitelist (Anthropic only)
+        blocked_domains: Optional list of domains to blacklist (Anthropic only)
+        max_searches: Maximum number of web searches the AI can perform (default: 5)
+        max_tokens: Maximum tokens in the response (default: 4000)
+        
+    Returns:
+        AI-generated response with web search results, or error message
+    """
+    logger.info(f"Performing web search with prompt: {prompt[:100]}...")
+    
+    if not anthropic_client:
+        logger.warning("AI client not initialized, cannot perform web search")
+        return "AI API key not configured. Cannot perform web search."
+    
+    try:
+        # Determine model and build request parameters based on API type
+        if AI_API_TYPE == 'OPENROUTER':
+            # OpenRouter: Use direct HTTP request since SDK doesn't support plugins parameter
+            model = DEFAULT_MODEL
+            
+            # Make direct HTTP request to OpenRouter API with web search plugin
+            # Try non-streaming first to ensure we get a response, then we can optimize for streaming
+            url = "https://openrouter.ai/api/v1/chat/completions"
+            headers = {
+                "Authorization": f"Bearer {OPENROUTER_API_KEY}",
+                "Content-Type": "application/json",
+                "HTTP-Referer": "http://localhost:5000",  # Optional: for OpenRouter analytics
+                "X-Title": "Market Oracle Web Search"  # Optional: for OpenRouter analytics
+            }
+            
+            payload = {
+                "model": model,
+                "max_tokens": max_tokens,
+                "messages": [
+                    {
+                        "role": "user",
+                        "content": prompt
+                    }
+                ],
+                "plugins": [{"id": "web"}]
+            }
+            
+            # Try non-streaming first to see the actual response format
+            logger.info(f"Making OpenRouter web search request to {url} with model {model}")
+            response = requests.post(url, headers=headers, json=payload, stream=False)
+            response.raise_for_status()
+            
+            # Parse non-streaming response
+            try:
+                result = response.json()
+                logger.debug(f"OpenRouter response keys: {list(result.keys())}")
+                
+                # Parse response
+                response_text = ""
+                if 'choices' in result and len(result['choices']) > 0:
+                    choice = result['choices'][0]
+                    if 'message' in choice and 'content' in choice['message']:
+                        response_text = choice['message']['content']
+                    elif 'delta' in choice and 'content' in choice['delta']:
+                        # Handle streaming format even in non-streaming request
+                        response_text = choice['delta']['content']
+                    else:
+                        logger.warning(f"Unexpected choice format: {json.dumps(choice)[:500]}")
+                else:
+                    logger.warning(f"No choices in response. Full response: {json.dumps(result)[:1000]}")
+                
+                if not response_text:
+                    error_msg = result.get('error', {}).get('message', 'Unknown error')
+                    logger.error(f"OpenRouter API error: {error_msg}")
+                    return f"Error: OpenRouter web search failed - {error_msg}"
+                
+                logger.info(f"Successfully received web search response from OpenRouter (length: {len(response_text)})")
+                return response_text
+                
+            except json.JSONDecodeError as e:
+                logger.error(f"Failed to parse OpenRouter response as JSON: {e}")
+                logger.error(f"Response text: {response.text[:500]}")
+                return f"Error: Failed to parse OpenRouter response. Status: {response.status_code}"
+            except Exception as e:
+                logger.error(f"Unexpected error parsing OpenRouter response: {e}")
+                return f"Error: {str(e)}"
+            
+        else:
+            # Anthropic: Use regular model and add web_search tool
+            model = DEFAULT_MODEL
+            
+            # Build web search tool configuration
+            web_search_tool = {
+                "type": "web_search_20250305",
+                "name": "web_search",
+                "max_uses": max_searches
+            }
+            
+            # Add domain filters if provided (Anthropic only)
+            if allowed_domains:
+                web_search_tool["allowed_domains"] = allowed_domains
+                logger.info(f"Allowed domains: {allowed_domains}")
+            if blocked_domains:
+                web_search_tool["blocked_domains"] = blocked_domains
+                logger.info(f"Blocked domains: {blocked_domains}")
+            
+            request_params = {
+                "model": model,
+                "max_tokens": max_tokens,
+                "messages": [
+                    {
+                        "role": "user",
+                        "content": prompt
+                    }
+                ],
+                "tools": [web_search_tool]
+            }
+            
+            # Make API call with web search enabled using Anthropic SDK
+            with anthropic_client.messages.stream(**request_params) as stream:
+                response_text = ""
+                for text in stream.text_stream:
+                    response_text += text
+            
+            logger.info("Successfully received web search response from Anthropic")
+            return response_text
+        
+    except Exception as e:
+        logger.error(f"Error performing web search: {e}")
+        return f"Error performing web search: {str(e)}"
 
 
 def extract_video_id(url: str) -> Optional[str]:
@@ -1731,14 +1943,15 @@ def run_analysis_with_config(config: Dict[str, Any], analysis_id: str) -> Dict[s
     """
     global FOREXFACTORY_START_DATE, FOREXFACTORY_USE_WEEK
     global TRADINGECONOMICS_START_DATE, TRADINGECONOMICS_END_DATE
-    global anthropic_client, ANTHROPIC_API_KEY
+    global anthropic_client, ANTHROPIC_API_KEY, OPENROUTER_API_KEY
     
     # Store original values
     original_ff_start = FOREXFACTORY_START_DATE
     original_ff_week = FOREXFACTORY_USE_WEEK
     original_te_start = TRADINGECONOMICS_START_DATE
     original_te_end = TRADINGECONOMICS_END_DATE
-    original_api_key = ANTHROPIC_API_KEY
+    # Store API key based on current API type (for restoration later)
+    original_api_key = OPENROUTER_API_KEY if AI_API_TYPE == 'OPENROUTER' else ANTHROPIC_API_KEY
     original_client = anthropic_client
     
     try:
@@ -1884,7 +2097,11 @@ def run_analysis_with_config(config: Dict[str, Any], analysis_id: str) -> Dict[s
         FOREXFACTORY_USE_WEEK = original_ff_week
         TRADINGECONOMICS_START_DATE = original_te_start
         TRADINGECONOMICS_END_DATE = original_te_end
-        ANTHROPIC_API_KEY = original_api_key
+        # Restore API key based on current API type
+        if AI_API_TYPE == 'OPENROUTER':
+            OPENROUTER_API_KEY = original_api_key
+        else:
+            ANTHROPIC_API_KEY = original_api_key
         anthropic_client = original_client
 
 
@@ -1900,83 +2117,91 @@ def generate_csv_from_analysis(comprehensive_analysis: str) -> str:
     """
     logger.info("Generating CSV from comprehensive analysis")
     
-    if not anthropic_client:
-        logger.warning("Anthropic client not initialized, returning empty CSV")
-        return ""
+    # Route to correct AI provider based on AI_API_TYPE
+    if AI_API_TYPE == 'OPENROUTER':
+        if not anthropic_client or not hasattr(anthropic_client, 'messages'):
+            logger.error("OpenRouter client not initialized")
+            raise RuntimeError('OpenRouter client not initialized')
+        call_client = anthropic_client
+    else:
+        # Default to Anthropic
+        if not anthropic_client:
+            logger.warning("Anthropic client not initialized, cannot generate CSV")
+            raise RuntimeError('Anthropic client not initialized')
+        call_client = anthropic_client
     
     CSV_GENERATION_PROMPT = '''
 # Task
-Given a comprehensive market analysis text, extract every single detail of all described assets, events, dates, targets, prices and patterns. 
-Then output everything into a single properly formatted .csv data object, so that it can be easily imported into a spreadsheet.
+You are an extractor: given a comprehensive market analysis text, produce a single CSV containing every event, prediction, price level, and date in the analysis.
 
-# Required .csv columns:
-- Token - The cryptocurrency being discussed (Bitcoin, Ethereum, XRP, Solana, etc.). Use "Crypto" or "General" for market-wide events.
-- Date - Specific dates mentioned for events or market movements (format: YYYY-MM-DD).
-- Event_Type - MUST be one of: "Listed" (for real-world events from ForexFactory/TradingEconomics), "Mentioned" (for events mentioned in transcripts), "Predicted" (for predictions/forecasts).
-- Event_Category - Categories like "Price Movement", "Regulatory", "Market Pattern", "Support Level", "Resistance Level", "Rate Decision", "Economic Data", "Astronomical", etc.
-- Price_Level - Specific price points mentioned (support, resistance, targets) with $ symbol (e.g., "$50000", "$1.75"). Use "N/A" if no price mentioned.
-- Price_Type - Whether the price is a "Support", "Resistance", "Target", "Current", "Peak", "Bottom", "Breakout", etc. Use "N/A" if not applicable.
-- Pattern - Specific chart patterns or market structures identified. Use "N/A" if not applicable.
-- Timeframe - Whether the event is "Past", "Present", or "Future".
-- Event_Description - Detailed description of what happened or is predicted.
-- Content_Source - Source of the information: "ForexFactory", "TradingEconomics", "YouTube Transcript", "Multiple", or "Analysis" for AI-generated predictions.
-- Confidence_Level - If indicated by the analyst (e.g., "High", "Medium", "Low", or probability percentages). Use "N/A" if not specified.
+# IMPORTANT: MUST RETURN ONLY A SINGLE CODE BLOCK (```txt) CONTAINING THE CSV. DO NOT OUTPUT ANY EXPLANATION, MARKDOWN, OR ADDITIONAL TEXT.
 
-# Event_Type Classification Rules:
-- "Listed": Use for events that come from economic calendars (ForexFactory, TradingEconomics). These are real-world scheduled events.
-- "Mentioned": Use for events, dates, or predictions that are mentioned in YouTube transcripts or analyst discussions but are not from economic calendars.
-- "Predicted": Use for predictions, forecasts, scenarios, or price targets that are generated by the AI analysis or mentioned as future possibilities.
+# REQUIRED CSV HEADER (MUST MATCH EXACTLY - case-sensitive, comma-separated):
+Token,Date,Event_Type,Forecast,Timeframe,Title,Description,Event_Category,Price_Level,Price_Type,Pattern,Content_Source,Confidence_Level
 
-# CSV Formatting Rules
-- ✓ MUST include a proper header row with ALL column names shown above, in that exact order.
-- ✓ MUST include EVERY Price_Level mentioned (support, resistance, targets).
-- ✓ MUST include a value for every field; use "N/A" for empty/unknown fields, NEVER leave a field blank.
-- ✓ MUST ensure EVERY row has EXACTLY 12 values (11 commas) corresponding to the 12 columns.
-- ✓ MUST ensure data values appear in their proper columns (e.g., dates in Date column, prices in Price_Level).
-- ✓ MUST format the Price_Level column with $ symbol for prices (e.g., "$50000" not "50000").
-- ✓ MUST format Date fields consistently (use YYYY-MM-DD format, or "N/A" if no specific date).
-- ✓ MUST place the output inside a .txt code block: ```.txt<csv_data>```.
-- ✓ MUST NEVER use commas within field values (use semicolons or alternative syntax if needed).
-- ✓ MUST NEVER include trailing commas at the end of a row - each row must end with a value, not a comma.
-- ✓ MUST validate every row for proper column count before providing the final output.
-- ✓ MUST extract events from ALL sections of the analysis, not just the "Calendar Updates" section.
-- ✓ MUST classify each event correctly as "Listed", "Mentioned", or "Predicted" based on the Event_Type rules above.
+# FIELD DEFINITIONS (use EXACT values/formats):
+- Token: Cryptocurrency name (e.g., Bitcoin, Ethereum) or "General" for market-wide events.
+- Date: YYYY-MM-DD or "N/A" if no specific date.
+- Event_Type: one of EXACTLY: Listed, Mentioned, Predicted.
+- Forecast: Prediction type from Calendar Updates section - one of: NEUTRAL, DUMP, PUMP, VOLATILITY, MAJOR DUMP, MAJOR PUMP, CRITICAL DUMP, CRITICAL PUMP, DUMP IF WEAK, DUMP IF STRONG, PUMP IF CUT, PUMP IF WEAK, MAJOR VOLATILITY, CRITICAL VOLATILITY, or "N/A" if not found or unclear.
+- Timeframe: Past, Present, Future or "N/A".
+- Title: Event title/name (e.g., "BusinessNZ Services Index (NZ)", "China Economic Data Cluster", "Federal Reserve FOMC") or "N/A" if not available.
+- Description: short description without commas (use semicolons instead) and without newlines.
+- Event_Category: category like Price Movement, Regulatory, Economic Data, Market Pattern, Support Level, Resistance Level, Astronomical, etc. Use "N/A" if unsure.
+- Price_Level: price with $ prefix (e.g., $50000) or "N/A".
+- Price_Type: Support, Resistance, Target, Current, Peak, Bottom, Breakout, or "N/A".
+- Pattern: chart pattern name or "N/A".
+- Content_Source: ForexFactory, TradingEconomics, YouTube Transcript, Multiple, or Analysis.
+- Confidence_Level: High, Medium, Low, a percentage (e.g., 75%), or "N/A".
 
-# Extraction Instructions:
-1. Extract ALL events from the "Calendar Updates based on both input events and transcripts" section - these should be classified as "Listed" if from ForexFactory/TradingEconomics, or "Mentioned" if from transcripts.
-2. Extract ALL price targets, support levels, and resistance levels from any section - these should be classified as "Predicted" or "Mentioned" depending on source.
-3. Extract ALL dates mentioned in transcripts or predictions - classify as "Mentioned" or "Predicted".
-4. Extract ALL scenarios and forecasts - classify as "Predicted".
-5. For each event, determine the appropriate Event_Category (Price Movement, Regulatory, Economic Data, etc.).
-6. Include the Content_Source based on where the information originated (ForexFactory, TradingEconomics, YouTube Transcript, or Analysis).
+# FORECAST EXTRACTION RULES (CRITICAL):
+1) For events in "# Calendar Updates based on both input events and transcripts" section:
+   - Extract Forecast directly from the format: "Date: FORECAST (magnitude), Title - Description"
+   - Examples: "NEUTRAL", "DUMP IF WEAK", "MAJOR VOLATILITY", "CRITICAL DUMP IF HAWKISH", "PUMP IF CUT"
+   - Include the full forecast text including conditions (e.g., "DUMP IF WEAK", not just "DUMP")
+   
+2) For events from other sections (transcripts, scenarios, etc.):
+   - If a clear directional prediction exists (e.g., "expects dump", "anticipates pump", "volatility expected"), extract it
+   - If unclear or no prediction, use "N/A"
+   - Look for keywords: "dump", "pump", "volatility", "neutral", "bearish", "bullish", "crash", "rally"
+   
+3) Title extraction:
+   - For Calendar Updates section: Extract the event name after the forecast and before the dash (e.g., "BusinessNZ Services Index (NZ)", "China Economic Data Cluster")
+   - For other sections: Extract the event name or use a descriptive title based on context
+   - If no clear title exists, use "N/A"
 
-# Examples:
-## Correct format:
-```
-Token,Date,Event_Type,Event_Category,Price_Level,Price_Type,Pattern,Timeframe,Event_Description,Content_Source,Confidence_Level
-Crypto,2025-12-19,Listed,Economic Data,N/A,N/A,N/A,Future,UK Retail Sales - Strong retail sales = hawkish BOE concerns = crypto sells off,ForexFactory,N/A
-Bitcoin,2025-12-19,Predicted,Price Movement,$80000,Support,N/A,Future,Potential sweep of November 21st lows,Analysis,Medium
-XRP,2026-01-18,Mentioned,Price Movement,$1.38,Support,N/A,Future,November 2021 high area mentioned as potential support,YouTube Transcript,High
-Bitcoin,2026-03-03,Predicted,Price Movement,N/A,N/A,N/A,Future,Total Lunar Eclipse - historically marks absolute bottoms before solar cycle rallies,Analysis,High
-```
+# FORMATTING RULES (YOU MUST OBEY ALL OF THESE):
+1) The first line must be the exact header shown above and only that header.
+2) Every subsequent line is a data row; every row must contain exactly 13 comma-separated values (12 commas).
+3) NEVER include commas within field values — replace commas with semicolons if needed.
+4) Use "N/A" for missing or inapplicable fields; never leave an empty field.
+5) Dates must use YYYY-MM-DD format when available.
+6) Price values must include the $ symbol when applicable.
+7) Do not include any extra commentary, footers, or metadata — only the code block with CSV.
 
-# Output Validation
-Before submitting your response, check that:
-1. Header row matches exactly the 12 required columns.
-2. Each row has exactly 12 values (11 commas).
-3. Data appears in appropriate columns (dates in Date column, prices in Price_Level column).
-4. No blank fields (use "N/A" instead).
-5. No incorrect column ordering or misaligned data.
-6. Event_Type is always one of: "Listed", "Mentioned", or "Predicted".
-7. All events from the analysis are included, not just calendar events.
+# CLASSIFICATION RULES:
+- Listed: events taken directly from economic calendars (ForexFactory, TradingEconomics).
+- Mentioned: events/dates referenced in transcripts or discussion but not calendar listings.
+- Predicted: AI-generated forecasts, price targets, or scenarios.
 
-# IMPORTANT: NEVER EVER skip the above conventions, rules and checklist. ALWAYS follow ALL patterns. NO exceptions.
+# EXTRA GUIDANCE:
+- Extract events from all sections of the analysis. If multiple sources contribute to the same event, set Content_Source to "Multiple".
+- If a single event mentions multiple price levels, produce separate rows for each price level (each row must still follow the header format).
+- Prioritize extracting Forecast from Calendar Updates section when available.
+
+# FEW-SHOT EXAMPLES (exact CSV rows; follow these styles):
+Token,Date,Event_Type,Forecast,Timeframe,Title,Description,Event_Category,Price_Level,Price_Type,Pattern,Content_Source,Confidence_Level
+General,2025-12-14,Listed,NEUTRAL,Future,BusinessNZ Services Index (NZ),Minor regional data; limited crypto impact,Economic Data,N/A,N/A,N/A,ForexFactory,N/A
+General,2025-12-15,Listed,DUMP IF WEAK,Future,China Economic Data Cluster,Weak China data triggers global slowdown fears and crypto selloffs,Economic Data,N/A,N/A,N/A,Multiple,Medium
+Bitcoin,2025-12-19,Predicted,MAJOR VOLATILITY,Future,BOJ Policy Rate Decision,BOJ hawkish surprise = severe yen carry trade unwind = crypto crash,Regulatory,N/A,N/A,N/A,Analysis,High
+
+# FINAL CHECK: Before returning, ensure header matches exactly and every row has 13 values (12 commas). Return only the CSV inside a single ```txt code block.
 '''
     
     try:
-        with anthropic_client.messages.stream(
-            model="claude-sonnet-4-5-20250929",
-            max_tokens=64000,
+        with call_client.messages.stream(
+            model=DEFAULT_MODEL,
+            max_tokens=56000,
             temperature=0.1,
             system=CSV_GENERATION_PROMPT,
             messages=[
@@ -2087,7 +2312,11 @@ def root():
             'step_2': 'POST /analyze - Run analysis with economic calendar data (requires analysis_id from step 1)',
             'step_3': 'POST /process - Generate CSV data from analysis (requires analysis_id)'
         },
-        'anthropic_api_key_configured': bool(ANTHROPIC_API_KEY and anthropic_client)
+        'api_key_configured': bool(
+            (AI_API_TYPE == 'OPENROUTER' and OPENROUTER_API_KEY and anthropic_client) or
+            (AI_API_TYPE != 'OPENROUTER' and ANTHROPIC_API_KEY and anthropic_client)
+        ),
+        'api_type': AI_API_TYPE
     })
 
 
@@ -2225,11 +2454,19 @@ def analyze():
             }), 400
         
         # Validate that API key exists in .env (security: never accept API keys in requests)
-        if not ANTHROPIC_API_KEY or not anthropic_client:
-            return jsonify({
-                'status': 'error',
-                'error': 'ANTHROPIC_API_KEY not configured in .env file. API keys must be set at the server level, not in requests.'
-            }), 500
+        # Check based on AI_API_TYPE
+        if AI_API_TYPE == 'OPENROUTER':
+            if not OPENROUTER_API_KEY or not anthropic_client:
+                return jsonify({
+                    'status': 'error',
+                    'error': 'OPENROUTER_API_KEY not configured in .env file. API keys must be set at the server level, not in requests.'
+                }), 500
+        else:
+            if not ANTHROPIC_API_KEY or not anthropic_client:
+                return jsonify({
+                    'status': 'error',
+                    'error': 'ANTHROPIC_API_KEY not configured in .env file. API keys must be set at the server level, not in requests.'
+                }), 500
         
         # Remove anthropic_api_key from config if provided (security: ignore it)
         if config and 'anthropic_api_key' in config:
@@ -2297,11 +2534,19 @@ def process():
             }), 400
         
         # Validate that API key exists in .env
-        if not ANTHROPIC_API_KEY or not anthropic_client:
-            return jsonify({
-                'status': 'error',
-                'error': 'ANTHROPIC_API_KEY not configured in .env file. API keys must be set at the server level, not in requests.'
-            }), 500
+        # Check based on AI_API_TYPE
+        if AI_API_TYPE == 'OPENROUTER':
+            if not OPENROUTER_API_KEY or not anthropic_client:
+                return jsonify({
+                    'status': 'error',
+                    'error': 'OPENROUTER_API_KEY not configured in .env file. API keys must be set at the server level, not in requests.'
+                }), 500
+        else:
+            if not ANTHROPIC_API_KEY or not anthropic_client:
+                return jsonify({
+                    'status': 'error',
+                    'error': 'ANTHROPIC_API_KEY not configured in .env file. API keys must be set at the server level, not in requests.'
+                }), 500
         
         # Construct analysis directory path
         analysis_dir = os.path.join("analysis", analysis_id)
@@ -2398,6 +2643,281 @@ def process():
         
     except Exception as e:
         logger.error(f"Error in /process endpoint: {e}")
+        return jsonify({
+            'status': 'error',
+            'error': str(e)
+        }), 500
+
+
+@app.route('/websearch', methods=['POST'])
+def websearch():
+    """
+    Web search endpoint that accepts a prompt and optional domain filters.
+    
+    Expected JSON body:
+    {
+        "prompt": "What are the latest Bitcoin price predictions?",  // required
+        "allowed_domains": ["coindesk.com", "bloomberg.com"],  // optional - Anthropic only
+        "blocked_domains": ["spam-site.com"],  // optional - Anthropic only
+        "max_searches": 5,  // optional, default: 5
+        "max_tokens": 4000  // optional, default: 4000
+    }
+    
+    Returns:
+    {
+        "status": "success",
+        "response": "...",
+        "prompt": "...",
+        "api_type": "ANTHROPIC" | "OPENROUTER"
+    }
+    """
+    try:
+        # Get JSON body
+        if not request.is_json:
+            return jsonify({
+                'status': 'error',
+                'error': 'Request must be JSON'
+            }), 400
+        
+        data = request.get_json()
+        prompt = data.get('prompt') if data else None
+        
+        if not prompt:
+            return jsonify({
+                'status': 'error',
+                'error': 'Missing required parameter: prompt'
+            }), 400
+        
+        # Validate that API key exists in .env
+        if AI_API_TYPE == 'OPENROUTER':
+            if not OPENROUTER_API_KEY or not anthropic_client:
+                return jsonify({
+                    'status': 'error',
+                    'error': 'OPENROUTER_API_KEY not configured in .env file. API keys must be set at the server level, not in requests.'
+                }), 500
+        else:
+            if not ANTHROPIC_API_KEY or not anthropic_client:
+                return jsonify({
+                    'status': 'error',
+                    'error': 'ANTHROPIC_API_KEY not configured in .env file. API keys must be set at the server level, not in requests.'
+                }), 500
+        
+        # Extract optional parameters
+        allowed_domains = data.get('allowed_domains')
+        blocked_domains = data.get('blocked_domains')
+        max_searches = data.get('max_searches', 5)
+        max_tokens = data.get('max_tokens', 4000)
+        
+        # Warn if domain filters are provided with OpenRouter (not supported)
+        if AI_API_TYPE == 'OPENROUTER' and (allowed_domains or blocked_domains):
+            logger.warning("Domain filtering is not supported with OpenRouter API. Filters will be ignored.")
+        
+        # Perform web search
+        response_text = perform_web_search(
+            prompt=prompt,
+            allowed_domains=allowed_domains,
+            blocked_domains=blocked_domains,
+            max_searches=max_searches,
+            max_tokens=max_tokens
+        )
+        
+        # Check if there was an error
+        if response_text.startswith("Error") or response_text.startswith("AI API key not configured"):
+            return jsonify({
+                'status': 'error',
+                'error': response_text
+            }), 500
+        
+        return jsonify({
+            'status': 'success',
+            'response': response_text,
+            'prompt': prompt,
+            'api_type': AI_API_TYPE,
+            'max_searches': max_searches,
+            'max_tokens': max_tokens,
+            'allowed_domains': allowed_domains if AI_API_TYPE != 'OPENROUTER' else None,
+            'blocked_domains': blocked_domains if AI_API_TYPE != 'OPENROUTER' else None
+        }), 200
+        
+    except Exception as e:
+        logger.error(f"Error in /websearch endpoint: {e}")
+        return jsonify({
+            'status': 'error',
+            'error': str(e)
+        }), 500
+
+
+@app.route('/ask-ai', methods=['POST'])
+def ask_ai():
+    """
+    Ask AI endpoint that accepts a question about a specific event and uses web search to provide current information.
+    
+    Expected JSON body:
+    {
+        "question": "What is the current status of this event?",  // required
+        "event": {  // required - event data from the table row
+            "Token": "Bitcoin",
+            "Date": "2025-12-25",
+            "Event_Type": "Listed",
+            "Title": "Fed Interest Rate Decision",
+            "Description": "...",
+            // ... other event fields
+        },
+        "analysis_id": "20251220_212438",  // optional - if provided, includes comprehensive analysis
+        "max_searches": 5,  // optional, default: 5
+        "max_tokens": 4000  // optional, default: 4000
+    }
+    
+    Returns:
+    {
+        "status": "success",
+        "response": "...",
+        "question": "...",
+        "event": {...}
+    }
+    """
+    try:
+        # Get JSON body
+        if not request.is_json:
+            return jsonify({
+                'status': 'error',
+                'error': 'Request must be JSON'
+            }), 400
+        
+        data = request.get_json()
+        question = data.get('question') if data else None
+        event = data.get('event') if data else None
+        analysis_id = data.get('analysis_id') if data else None
+        
+        if not question:
+            return jsonify({
+                'status': 'error',
+                'error': 'Missing required parameter: question'
+            }), 400
+        
+        if not event:
+            return jsonify({
+                'status': 'error',
+                'error': 'Missing required parameter: event'
+            }), 400
+        
+        # Validate that API key exists in .env
+        if AI_API_TYPE == 'OPENROUTER':
+            if not OPENROUTER_API_KEY or not anthropic_client:
+                return jsonify({
+                    'status': 'error',
+                    'error': 'OPENROUTER_API_KEY not configured in .env file. API keys must be set at the server level, not in requests.'
+                }), 500
+        else:
+            if not ANTHROPIC_API_KEY or not anthropic_client:
+                return jsonify({
+                    'status': 'error',
+                    'error': 'ANTHROPIC_API_KEY not configured in .env file. API keys must be set at the server level, not in requests.'
+                }), 500
+        
+        # Extract optional parameters
+        max_searches = data.get('max_searches', 5)
+        max_tokens = data.get('max_tokens', 4000)
+        
+        # Load comprehensive analysis if analysis_id is provided
+        comprehensive_analysis = None
+        if analysis_id:
+            analysis_dir = os.path.join("analysis", analysis_id)
+            comprehensive_analysis_path = os.path.join(analysis_dir, "comprehensive_analysis.txt")
+            if os.path.exists(comprehensive_analysis_path):
+                try:
+                    with open(comprehensive_analysis_path, 'r', encoding='utf-8') as f:
+                        comprehensive_analysis = f.read()
+                    logger.info(f"Loaded comprehensive analysis from {comprehensive_analysis_path} (length: {len(comprehensive_analysis)})")
+                except Exception as e:
+                    logger.warning(f"Failed to load comprehensive analysis: {e}")
+            else:
+                logger.warning(f"Comprehensive analysis file not found: {comprehensive_analysis_path}")
+        
+        # Build event context string
+        event_context = f"""Event Details:
+- Token: {event.get('Token', 'N/A')}
+- Date: {event.get('Date', 'N/A')}
+- Event Type: {event.get('Event_Type', 'N/A')}
+- Title: {event.get('Title', event.get('Event_Description', 'N/A'))}
+- Description: {event.get('Description', event.get('Event_Description', 'N/A'))}
+- Category: {event.get('Event_Category', 'N/A')}
+- Price Level: {event.get('Price_Level', 'N/A')}
+- Price Type: {event.get('Price_Type', 'N/A')}
+- Timeframe: {event.get('Timeframe', 'N/A')}
+- Forecast: {event.get('Forecast', 'N/A')}
+- Source: {event.get('Content_Source', 'N/A')}
+- Confidence: {event.get('Confidence_Level', 'N/A')}"""
+        
+        # Build the prompt with comprehensive analysis, event context, and question
+        prompt_parts = [
+            "You are a financial market analyst assistant. A user is asking about a specific event from their market analysis.",
+            "",
+            "=== ORIGINAL ANALYSIS ===",
+        ]
+        
+        if comprehensive_analysis:
+            prompt_parts.append("Below is the comprehensive analysis that was generated for this dataset. Use this as your knowledge base to understand the context, patterns, and predictions that were identified:")
+            prompt_parts.append("")
+            prompt_parts.append(comprehensive_analysis)
+            prompt_parts.append("")
+        else:
+            prompt_parts.append("(No original comprehensive analysis available for this dataset.)")
+            prompt_parts.append("")
+        
+        prompt_parts.extend([
+            "=== SPECIFIC EVENT ===",
+            "The user is asking about this specific event from the analysis:",
+            "",
+            event_context,
+            "",
+            "=== USER'S QUESTION ===",
+            question,
+            "",
+            "=== INSTRUCTIONS ===",
+            "Please provide a helpful, accurate answer about this event. You have access to:",
+            "1. The original comprehensive analysis (above) - use this as your knowledge base",
+            "2. The specific event details - the event the user is asking about",
+            "3. Web search capabilities - use web search to find the most current information",
+            "",
+            "Your response should:",
+            "- Reference relevant information from the original analysis when applicable",
+            "- Use web search to find current status, updates, and recent developments",
+            "- Provide market impact analysis and expectations",
+            "- Include relevant context from reliable financial news sources",
+            "- Synthesize information from both the original analysis and current web sources",
+            "",
+            "Focus on providing actionable, up-to-date information that helps the user understand the current state and implications of this event."
+        ])
+        
+        prompt = "\n".join(prompt_parts)
+        
+        # Perform web search with the combined prompt
+        response_text = perform_web_search(
+            prompt=prompt,
+            allowed_domains=None,  # Allow all domains for general questions
+            blocked_domains=None,
+            max_searches=max_searches,
+            max_tokens=max_tokens
+        )
+        
+        # Check if there was an error
+        if response_text.startswith("Error") or response_text.startswith("AI API key not configured"):
+            return jsonify({
+                'status': 'error',
+                'error': response_text
+            }), 500
+        
+        return jsonify({
+            'status': 'success',
+            'response': response_text,
+            'question': question,
+            'event': event,
+            'api_type': AI_API_TYPE
+        }), 200
+        
+    except Exception as e:
+        logger.error(f"Error in /ask-ai endpoint: {e}")
         return jsonify({
             'status': 'error',
             'error': str(e)

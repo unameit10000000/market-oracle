@@ -1,5 +1,35 @@
-.env
-venv/
-temp/
-analysis/*
-!analysis/.gitkeep
+# Root-level .gitignore for Market Oracle project
+
+# API
+api/.env
+api/env/
+api/analysis/*
+!api/analysis/.gitkeep
+api/temp/
+api/*.pyc
+api/__pycache__/
+
+# Frontend
+app/node_modules/
+app/.next/
+app/out/
+app/.env*.local
+app/.vercel
+app/*.tsbuildinfo
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+.DS_Store?
+
+# Logs
+*.log
+logs/
+
