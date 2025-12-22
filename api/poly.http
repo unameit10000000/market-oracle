@@ -1,0 +1,30 @@
+### Polymarket API Test Endpoints
+
+@baseUrl = http://localhost:5000
+@eventUrl = https://polymarket.com/event/bitcoin-price-on-december-22
+# @eventSlug = bitcoin-price-on-december-22
+@eventSlug = bitcoin-above-on-december-22
+
+@marketID = 941452
+
+### Get event data with all markets (by URL)
+GET {{baseUrl}}/poly/event?url={{eventUrl}}
+
+### Get event data with all markets (by slug)
+GET {{baseUrl}}/poly/event/slug/{{eventSlug}}
+
+### Get outcome probabilities (first market in event)
+GET {{baseUrl}}/poly/probabilities?url={{eventUrl}}
+
+### Get outcome probabilities (specific market)
+GET {{baseUrl}}/poly/probabilities?url={{eventUrl}}&market_slug=will-the-price-of-bitcoin-be-between-88000-90000-on-december-22
+
+### Get reduced list of markets for an event (by URL)
+GET {{baseUrl}}/poly/event/markets/list?url={{eventUrl}}
+
+### Get reduced list of markets for an event (by slug)
+GET {{baseUrl}}/poly/event/markets/list?slug={{eventSlug}}
+
+### Get detailed market data by market ID
+GET {{baseUrl}}/poly/market/{{marketID}}
+
