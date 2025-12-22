@@ -101,6 +101,32 @@ For detailed documentation about each component:
 - **AI-Powered Predictions** - Uses Claude AI to generate directional predictions with magnitude estimates
 - **Historical Pattern Analysis** - Analyzes correlations between economic events and crypto price movements
 - **Interactive Dashboard** - Visualize predictions, price targets, event timelines, and data tables
+- **Polymarket Tracking** - Optional real-time tracking of Polymarket prediction markets with probability monitoring
+
+## 📦 Modules
+
+### Polymarket Tracking Module
+
+The Polymarket Tracking module provides optional integration with Polymarket prediction markets. This module allows you to:
+
+- **Track Real-Time Markets**: Monitor Polymarket events and markets in real-time
+- **View Market Probabilities**: See current outcome probabilities and price movements
+- **Optional API Keys**: Works without API keys for public data, with optional keys for enhanced features
+- **Interactive Dashboard**: Access via the "Tracking" tab in the dashboard
+
+**How it works:**
+1. Navigate to the dashboard after processing an analysis
+2. Click on the "Tracking" tab
+3. Enable Polymarket tracking with the checkbox
+4. Enter a Polymarket event URL or slug
+5. View all markets with probabilities, buy prices, and volume data
+
+**Configuration:**
+- API keys are optional - the module works with public Polymarket data without authentication
+- For enhanced features, add Polymarket API keys to your `.env` file (see [API Documentation](./api/readme.md#polymarket-api-keys) for details)
+- The module will warn you if keys are not configured but allow you to continue with public data access
+
+See the [API Documentation](./api/readme.md#polymarket-api-keys) for detailed setup instructions.
 
 ## 🔧 Configuration
 
@@ -116,6 +142,9 @@ All API configuration is done through a `.env` file in the `/api` directory. See
 - `FOREXFACTORY_USE_WEEK` - Use week-based scraping (default: true)
 - `TRADINGECONOMICS_START_DATE` - Start date for TradingEconomics scraping
 - `TRADINGECONOMICS_END_DATE` - End date for TradingEconomics scraping
+- `POLY_API_KEY` - Polymarket API key (optional, for enhanced features)
+- `POLY_API_SECRET` - Polymarket API secret (optional, for enhanced features)
+- `POLY_API_PASSPHRASE` - Polymarket API passphrase (optional, for enhanced features)
 
 ### Frontend Configuration
 
@@ -144,7 +173,7 @@ Future improvements and features we'd like to implement:
 
 - [ ] **Telegram-based price signals** - Integrate Telegram bot to send real-time price signals and alerts based on analysis results
 - [ ] **Database integration** - Migrate from file-based storage to PostgreSQL database for better data management, querying, and persistence
-- [ ] **Polymarket data source integration** - Integrate Polymarket as a datasource for prediction market data and insights
+- [x] **Polymarket data source integration** - ✅ Integrated Polymarket as an optional tracking module for prediction market data and insights
 - [ ] **Polymarket betting bot module** - Build an automated betting bot module that can place bets on Polymarket based on analysis predictions
 - [ ] **Kraken realtime chart data** - Integrate Kraken (or other exchange) realtime chart data for live market analysis and visualization
 - [ ] **Kraken trading bot module** - Develop an automated trading bot module that can execute trades on Kraken based on analysis signals

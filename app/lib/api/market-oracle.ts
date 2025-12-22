@@ -170,5 +170,99 @@ export const marketOracleApi = {
       throw error;
     }
   },
+
+  /**
+   * Check if Polymarket API keys are configured
+   */
+  async checkPolymarketKeys(): Promise<{
+    status: string;
+    keys_configured: boolean;
+    keys_present: {
+      api_key: boolean;
+      api_secret: boolean;
+      api_passphrase: boolean;
+    };
+    error?: string;
+  }> {
+    console.log(`[MarketOracleAPI] Checking Polymarket API keys`);
+    try {
+      const response = await apiClient.get<{
+        status: string;
+        keys_configured: boolean;
+        keys_present: {
+          api_key: boolean;
+          api_secret: boolean;
+          api_passphrase: boolean;
+        };
+        error?: string;
+      }>("/poly/check-keys");
+      
+      console.log(`[MarketOracleAPI] Keys configured: ${response.keys_configured}`);
+      return response;
+    } catch (error) {
+      console.error(`[MarketOracleAPI] Error checking Polymarket keys:`, error);
+      throw error;
+    }
+  },
+
+  /**
+   * Get Polymarket event markets list
+   */
+  async getPolymarketMarkets(options: {
+    url?: string;
+    slug?: string;
+  }): Promise<{
+    status: string;
+    event_slug: string;
+    markets_count: number;
+    markets: Array<{
+      id: string;
+      question?: string;
+      groupItemTitle?: string;
+      details: {
+        active: boolean;
+        closed: boolean;
+        outcomes: string;
+        outcomePrices: string;
+        volume: string;
+      };
+    }>;
+    error?: string;
+  }> {
+    console.log(`[MarketOracleAPI] Fetching Polymarket markets:`, options);
+    try {
+      const params = new URLSearchParams();
+      if (options.url) {
+        params.append("url", options.url);
+      } else if (options.slug) {
+        params.append("slug", options.slug);
+      } else {
+        throw new Error("Either url or slug must be provided");
+      }
+
+      const response = await apiClient.get<{
+        status: string;
+        event_slug: string;
+        markets_count: number;
+        markets: Array<{
+          id: string;
+          details: {
+            active: boolean;
+            closed: boolean;
+            outcomes: string;
+            outcomePrices: string;
+            volume: string;
+          };
+        }>;
+        error?: string;
+      }>(`/poly/event/markets/list?${params.toString()}`);
+      
+      console.log(`[MarketOracleAPI] Markets fetched: ${response.markets_count} markets`);
+      return response;
+    } catch (error) {
+      console.error(`[MarketOracleAPI] Error fetching Polymarket markets:`, error);
+      throw error;
+    }
+  },
 };
 

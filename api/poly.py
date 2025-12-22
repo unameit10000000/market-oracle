@@ -19,9 +19,10 @@ logger = logging.getLogger(__name__)
 
 # Polymarket API Configuration
 POLYMARKET_API_BASE_URL = os.getenv('POLYMARKET_API_BASE_URL', 'https://gamma-api.polymarket.com')
-POLYMARKET_API_KEY = os.getenv('POLYMARKET_API_KEY', '')
-POLYMARKET_API_SECRET = os.getenv('POLYMARKET_API_SECRET', '')
-POLYMARKET_API_PASSPHRASE = os.getenv('POLYMARKET_API_PASSPHRASE', '')
+# Support both POLY_API_* (preferred) and POLYMARKET_API_* (legacy) variable names
+POLYMARKET_API_KEY = os.getenv('POLY_API_KEY') or os.getenv('POLYMARKET_API_KEY', '')
+POLYMARKET_API_SECRET = os.getenv('POLY_API_SECRET') or os.getenv('POLYMARKET_API_SECRET', '')
+POLYMARKET_API_PASSPHRASE = os.getenv('POLY_API_PASSPHRASE') or os.getenv('POLYMARKET_API_PASSPHRASE', '')
 
 
 def extract_event_slug_from_url(polymarket_url: str) -> str:

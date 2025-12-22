@@ -6,8 +6,12 @@ api/env/
 api/analysis/*
 !api/analysis/.gitkeep
 api/temp/
-api/*.pyc
-api/__pycache__/
+# Python cache files (all locations)
+**/__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
 
 # Frontend
 app/node_modules/

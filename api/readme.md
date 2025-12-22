@@ -174,9 +174,52 @@ These variables are optional and used as defaults. When using the API endpoints,
    YOUTUBE_URLS=https://www.youtube.com/watch?v=bgV5FnP8gpA,https://www.youtube.com/watch?v=FZyVMrIZ26Q,...
    ```
 
+6. **Polymarket API Keys** (optional - for enhanced features)
+   ```env
+   # These keys are optional. The Polymarket API works without keys for public data access.
+   # API keys are only needed for enhanced features like authenticated endpoints.
+   POLY_API_KEY=your_polymarket_api_key_here
+   POLY_API_SECRET=your_polymarket_api_secret_here
+   POLY_API_PASSPHRASE=your_polymarket_api_passphrase_here
+   ```
+
 **Note:** When using the API mode (`python main.py --api`), `YOUTUBE_URLS` is not needed since URLs are provided via the `/validate` endpoint. It's only required when running the standalone script mode.
 
 See `.env.template` for a complete example with all configuration options and detailed comments.
+
+### Polymarket API Keys
+
+The Polymarket Tracking module works **without API keys** for accessing public market data. However, if you want to access enhanced features or authenticated endpoints, you can optionally configure API keys.
+
+#### How to Get Polymarket API Keys
+
+1. **Navigate to Polymarket Settings:**
+   - Go to [https://polymarket.com/settings?tab=builder](https://polymarket.com/settings?tab=builder)
+   - Or click your profile icon → "Builders" in the Polymarket interface
+
+2. **Create API Keys:**
+   - Click the "Create" or "Create New" button
+   - A popup will appear with your API credentials:
+     - `apiKey` - Your Polymarket API key
+     - `secret` - Your API secret
+     - `passphrase` - Your API passphrase
+
+3. **Add to .env File:**
+   Copy the values into your `.env` file:
+   ```env
+   POLY_API_KEY=your_api_key_here
+   POLY_API_SECRET=your_secret_here
+   POLY_API_PASSPHRASE=your_passphrase_here
+   ```
+
+4. **Restart the API Server:**
+   After adding the keys, restart your API server for the changes to take effect.
+
+**Important Notes:**
+- API keys are **optional** - the Polymarket module works with public data without keys
+- The frontend will warn you if keys are not configured but allow you to continue
+- Keep your API keys secure and never commit them to version control
+- Legacy variable names (`POLYMARKET_API_KEY`, etc.) are also supported for backward compatibility
 
 ## 📡 API Endpoints
 

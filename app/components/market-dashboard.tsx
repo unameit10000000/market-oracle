@@ -18,6 +18,7 @@ import PriceTargets from "@/components/price-targets";
 import EventTimeline from "@/components/event-timeline";
 import DashboardCharts from "@/components/dashboard-charts";
 import DataTable from "@/components/data-table";
+import PolymarketTracking from "@/components/polymarket-tracking";
 import { Input } from "@/components/ui/input";
 import { Search, Maximize2 } from "lucide-react";
 import {
@@ -307,11 +308,12 @@ export default function MarketDashboard({
         </div>
 
         <Tabs defaultValue="price-targets" className="w-full">
-          <TabsList className="grid w-full grid-cols-4 mb-4">
+          <TabsList className="grid w-full grid-cols-5 mb-4">
             <TabsTrigger value="price-targets">Price Targets</TabsTrigger>
             <TabsTrigger value="timeline">Timeline</TabsTrigger>
             <TabsTrigger value="charts">Charts</TabsTrigger>
             <TabsTrigger value="data">Raw Data</TabsTrigger>
+            <TabsTrigger value="tracking">Tracking</TabsTrigger>
           </TabsList>
 
           <TabsContent value="price-targets">
@@ -358,6 +360,10 @@ export default function MarketDashboard({
                 <DataTable data={filteredData} analysisId={analysisId} />
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="tracking">
+            <PolymarketTracking />
           </TabsContent>
         </Tabs>
 

@@ -15,6 +15,52 @@ import poly
 logger = logging.getLogger(__name__)
 
 
+@app.route('/poly/check-keys', methods=['GET'])
+def poly_check_keys():
+    """
+    Check if Polymarket API keys are configured.
+    
+    Returns:
+        {
+            "status": "success",
+            "keys_configured": true/false,
+            "keys_present": {
+                "api_key": true/false,
+                "api_secret": true/false,
+                "api_passphrase": true/false
+            }
+        }
+    """
+    try:
+        # Support both POLY_API_* (preferred) and POLYMARKET_API_* (legacy) variable names
+        api_key = os.getenv('POLY_API_KEY') or os.getenv('POLYMARKET_API_KEY', '')
+        api_secret = os.getenv('POLY_API_SECRET') or os.getenv('POLYMARKET_API_SECRET', '')
+        api_passphrase = os.getenv('POLY_API_PASSPHRASE') or os.getenv('POLYMARKET_API_PASSPHRASE', '')
+        
+        keys_present = {
+            "api_key": bool(api_key and api_key.strip()),
+            "api_secret": bool(api_secret and api_secret.strip()),
+            "api_passphrase": bool(api_passphrase and api_passphrase.strip())
+        }
+        
+        # Consider keys configured if at least API key is present
+        # (some endpoints might only need the key, not secret/passphrase)
+        keys_configured = keys_present["api_key"]
+        
+        return jsonify({
+            'status': 'success',
+            'keys_configured': keys_configured,
+            'keys_present': keys_present
+        }), 200
+        
+    except Exception as e:
+        logger.error(f"Error checking Polymarket API keys: {e}")
+        return jsonify({
+            'status': 'error',
+            'error': str(e)
+        }), 500
+
+
 @app.route('/poly/probabilities', methods=['GET'])
 def poly_probabilities():
     """
@@ -215,6 +261,8 @@ def poly_event_markets_list():
         for market in markets_raw:
             markets_list.append({
                 "id": market.get("id"),
+                "question": market.get("question", ""),  # Market question/title
+                "groupItemTitle": market.get("groupItemTitle", ""),  # Price range label (e.g., "<78,000", "86,000-88,000")
                 "details": {
                     "outcomes": market.get("outcomes"),
                     "outcomePrices": market.get("outcomePrices"),
@@ -341,7 +389,8 @@ def poly_debug_event():
         logger.info(f"Debug: Calling API URL: {api_url}")
         
         headers = {}
-        api_key = os.getenv('POLYMARKET_API_KEY', '')
+        # Support both POLY_API_* (preferred) and POLYMARKET_API_* (legacy) variable names
+        api_key = os.getenv('POLY_API_KEY') or os.getenv('POLYMARKET_API_KEY', '')
         if api_key:
             headers['Authorization'] = f'Bearer {api_key}'
         

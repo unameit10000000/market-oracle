@@ -1,9 +1,9 @@
 ### Polymarket API Test Endpoints
 
 @baseUrl = http://localhost:5000
-@eventUrl = https://polymarket.com/event/bitcoin-price-on-december-22
+@eventUrl = https://polymarket.com/event/bitcoin-price-on-december-23
 # @eventSlug = bitcoin-price-on-december-22
-@eventSlug = bitcoin-above-on-december-22
+@eventSlug = bitcoin-above-on-december-23
 
 @marketID = 941452
 
