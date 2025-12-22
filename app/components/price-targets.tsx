@@ -149,7 +149,7 @@ export default function PriceTargets({ data }: PriceTargetsProps) {
 
                     switch (pricePoint.type) {
                       case "support":
-                        bgColor = "bg-green-500"
+                        bgColor = "bg-teal-500"
                         break
                       case "resistance":
                         bgColor = "bg-red-500"
@@ -221,10 +221,10 @@ export default function PriceTargets({ data }: PriceTargetsProps) {
 
                 {supports.length > 0 && (
                   <div className="bg-secondary p-4 rounded-lg">
-                    <h4 className="font-semibold text-green-500 mb-2">Support Levels</h4>
+                    <h4 className="font-semibold text-teal-500 mb-2">Support Levels</h4>
                     <ul className="space-y-2">
                       {supports.map((support, i) => (
-                        <li key={i} className="text-sm border-l-4 border-green-500 pl-2">
+                        <li key={i} className="text-sm border-l-4 border-teal-500 pl-2">
                           <span className="font-medium">${support.price.toFixed(2)}</span>
                           {support.description && (
                             <p className="text-xs text-muted-foreground mt-1">{support.description}</p>

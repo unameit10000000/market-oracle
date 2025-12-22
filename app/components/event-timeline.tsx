@@ -93,7 +93,7 @@ export default function EventTimeline({ data }: EventTimelineProps) {
           {sortedEvents.map((event, index) => {
             const confidenceClass =
               event.Confidence_Level === "High"
-                ? "border-green-500"
+                ? "border-teal-500"
                 : event.Confidence_Level === "Medium"
                   ? "border-amber-500"
                   : "border-red-500"
@@ -120,7 +120,7 @@ export default function EventTimeline({ data }: EventTimelineProps) {
                             event.Forecast.includes("DUMP")
                               ? "text-red-600 font-semibold"
                               : event.Forecast.includes("PUMP")
-                                ? "text-green-600 font-semibold"
+                                ? "text-teal-600 font-semibold"
                                 : event.Forecast.includes("VOLATILITY")
                                   ? "text-amber-600 font-semibold"
                                   : ""

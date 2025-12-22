@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,6 +16,13 @@ import {
 } from "@/components/ui/dialog";
 import { Loader2, XCircle, CheckCircle2, ExternalLink, AlertTriangle } from "lucide-react";
 import { marketOracleApi } from "@/lib/api/market-oracle";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface PolymarketMarket {
   id: string;
@@ -33,6 +40,7 @@ interface PolymarketMarket {
 interface PolymarketMarketsResponse {
   status: string;
   event_slug: string;
+  endDate?: string;  // Event resolution time (ISO 8601 format)
   markets_count: number;
   markets: PolymarketMarket[];
   error?: string;
@@ -47,6 +55,9 @@ export default function PolymarketTracking() {
   const [error, setError] = useState<string | null>(null);
   const [showKeysDialog, setShowKeysDialog] = useState(false);
   const [isCheckingKeys, setIsCheckingKeys] = useState(false);
+  const [timezone, setTimezone] = useState<string>(Intl.DateTimeFormat().resolvedOptions().timeZone);
+  const [timeRemaining, setTimeRemaining] = useState<{ hours: number; minutes: number; seconds: number } | null>(null);
+  const [currentTime, setCurrentTime] = useState<string>("");
 
   const handleToggle = async () => {
     // If enabling, check for API keys first
@@ -156,6 +167,54 @@ export default function PolymarketTracking() {
     }
     return `$${num.toFixed(2)}`;
   };
+
+  // Countdown timer effect
+  useEffect(() => {
+    if (!marketsData?.endDate) {
+      setTimeRemaining(null);
+      return;
+    }
+
+    const updateCountdown = () => {
+      try {
+        const endDate = new Date(marketsData.endDate!);
+        const now = new Date();
+        const diff = endDate.getTime() - now.getTime();
+
+        if (diff <= 0) {
+          setTimeRemaining({ hours: 0, minutes: 0, seconds: 0 });
+          return;
+        }
+
+        const hours = Math.floor(diff / (1000 * 60 * 60));
+        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+        setTimeRemaining({ hours, minutes, seconds });
+
+        // Update current time display
+        const formatter = new Intl.DateTimeFormat('en-US', {
+          timeZone: timezone,
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+          hour12: true,
+        });
+        setCurrentTime(formatter.format(now));
+      } catch (err) {
+        console.error("Error calculating countdown:", err);
+        setTimeRemaining(null);
+      }
+    };
+
+    updateCountdown();
+    const interval = setInterval(updateCountdown, 1000);
+
+    return () => clearInterval(interval);
+  }, [marketsData?.endDate, timezone]);
 
   const extractOutcomeLabel = (question: string | undefined): string => {
     if (!question) return "Unknown";
@@ -277,8 +336,8 @@ export default function PolymarketTracking() {
             {/* Markets List */}
             {marketsData && marketsData.markets && marketsData.markets.length > 0 && (
               <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div>
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex-1">
                     <h3 className="text-lg font-semibold">Markets</h3>
                     <p className="text-sm text-muted-foreground">
                       Event: <span className="font-mono">{marketsData.event_slug}</span>
@@ -287,6 +346,59 @@ export default function PolymarketTracking() {
                       Total Markets: {marketsData.markets_count}
                     </p>
                   </div>
+                  
+                  {/* Countdown Timer */}
+                  {marketsData.endDate && timeRemaining !== null && (
+                    <div className="flex flex-col items-end gap-2">
+                      <Select value={timezone} onValueChange={setTimezone}>
+                        <SelectTrigger className="w-[200px]">
+                          <SelectValue placeholder="Select timezone" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="America/New_York">Eastern Time (ET)</SelectItem>
+                          <SelectItem value="America/Chicago">Central Time (CT)</SelectItem>
+                          <SelectItem value="America/Denver">Mountain Time (MT)</SelectItem>
+                          <SelectItem value="America/Los_Angeles">Pacific Time (PT)</SelectItem>
+                          <SelectItem value="Europe/London">London (GMT)</SelectItem>
+                          <SelectItem value="Europe/Paris">Paris (CET)</SelectItem>
+                          <SelectItem value="Asia/Tokyo">Tokyo (JST)</SelectItem>
+                          <SelectItem value="Asia/Shanghai">Shanghai (CST)</SelectItem>
+                          <SelectItem value="UTC">UTC</SelectItem>
+                          <SelectItem value={Intl.DateTimeFormat().resolvedOptions().timeZone}>
+                            Local Time
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                      
+                      <div className="text-right">
+                        <div className="flex items-end justify-end gap-4">
+                          <div className="text-center">
+                            <div className="text-3xl font-bold text-red-600 dark:text-red-500 leading-none">
+                              {String(timeRemaining.hours).padStart(2, '0')}
+                            </div>
+                            <div className="text-xs text-muted-foreground mt-1">HRS</div>
+                          </div>
+                          <div className="text-center">
+                            <div className="text-3xl font-bold text-red-600 dark:text-red-500 leading-none">
+                              {String(timeRemaining.minutes).padStart(2, '0')}
+                            </div>
+                            <div className="text-xs text-muted-foreground mt-1">MNS</div>
+                          </div>
+                          <div className="text-center">
+                            <div className="text-3xl font-bold text-red-600 dark:text-red-500 leading-none">
+                              {String(timeRemaining.seconds).padStart(2, '0')}
+                            </div>
+                            <div className="text-xs text-muted-foreground mt-1">SECS</div>
+                          </div>
+                        </div>
+                        {currentTime && (
+                          <p className="text-xs text-muted-foreground mt-2">
+                            Current Time ({timezone}): {currentTime}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 <div className="space-y-3 max-h-[600px] overflow-y-auto">
@@ -367,13 +479,13 @@ export default function PolymarketTracking() {
 
                             {/* Column 3: Buy Yes/No Prices */}
                             <div className="flex flex-col justify-center space-y-2">
-                              <div className="flex items-center justify-between p-2 bg-muted rounded-md">
-                                <span className="text-sm font-medium">Buy Yes:</span>
-                                <span className="text-sm font-semibold">{buyYesCents}¢</span>
+                              <div className="flex items-center justify-between p-2 bg-teal-500/10 border-2 border-teal-500 rounded-md">
+                                <span className="text-sm font-medium text-teal-600 dark:text-teal-400">Buy No:</span>
+                                <span className="text-sm font-semibold text-teal-600 dark:text-teal-400">{buyNoCents}¢</span>
                               </div>
-                              <div className="flex items-center justify-between p-2 bg-muted rounded-md">
-                                <span className="text-sm font-medium">Buy No:</span>
-                                <span className="text-sm font-semibold">{buyNoCents}¢</span>
+                              <div className="flex items-center justify-between p-2 bg-red-500/10 border-2 border-red-500 rounded-md">
+                                <span className="text-sm font-medium text-red-600 dark:text-red-400">Buy No:</span>
+                                <span className="text-sm font-semibold text-red-600 dark:text-red-400">{buyNoCents}¢</span>
                               </div>
                             </div>
                           </div>

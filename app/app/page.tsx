@@ -292,7 +292,7 @@ export default function Home() {
                         const result = validationResults.find((r) => r.url === url);
                         const statusClass =
                           result?.success === true
-                            ? "border-green-500"
+                            ? "border-teal-500"
                             : result?.success === false
                             ? "border-red-500"
                             : "border-amber-500";
@@ -348,7 +348,7 @@ export default function Home() {
                     className="relative overflow-hidden"
                   >
                     {validationSuccess ? (
-                      <CheckCircle className="h-4 w-4 text-green-500" />
+                      <CheckCircle className="h-4 w-4 text-teal-500" />
                     ) : (
                       <XCircle className="h-4 w-4" />
                     )}

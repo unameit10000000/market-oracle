@@ -354,7 +354,7 @@ export default function DataTable({ data, hideExport = false, analysisId }: Data
                     row.Forecast?.includes("DUMP")
                       ? "text-red-600 font-semibold"
                       : row.Forecast?.includes("PUMP")
-                        ? "text-green-600 font-semibold"
+                        ? "text-teal-600 font-semibold"
                         : row.Forecast?.includes("VOLATILITY")
                           ? "text-amber-600 font-semibold"
                           : ""
@@ -377,7 +377,7 @@ export default function DataTable({ data, hideExport = false, analysisId }: Data
                 <span
                   className={
                     row.Confidence_Level === "High"
-                      ? "text-green-500"
+                      ? "text-teal-500"
                       : row.Confidence_Level === "Medium"
                         ? "text-amber-600"
                         : "text-red-600"

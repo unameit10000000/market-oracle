@@ -23,9 +23,9 @@ export default function DashboardCharts({ data }: DashboardChartsProps) {
   useEffect(() => {
     // Define custom gradient colors
     const gradientColors = [
-      "rgba(22, 163, 74, 0.8)", // Vibrant Green (primary)
+      "rgba(20, 184, 166, 0.8)", // Teal (primary)
       "rgba(14, 165, 233, 0.8)", // Azure Blue
-      "rgba(20, 184, 166, 0.8)", // Teal
+      "rgba(22, 163, 74, 0.8)", // Emerald
       "rgba(132, 204, 22, 0.8)", // Lime Green
       "rgba(253, 187, 65, 0.8)", // Yellow
     ]
@@ -147,7 +147,7 @@ export default function DashboardCharts({ data }: DashboardChartsProps) {
               {
                 label: "High Confidence",
                 data: highData,
-                backgroundColor: gradientColors[0], // Green
+                backgroundColor: gradientColors[0], // Teal
                 borderWidth: 1,
               },
               {

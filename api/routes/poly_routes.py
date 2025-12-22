@@ -272,9 +272,13 @@ def poly_event_markets_list():
                 }
             })
         
+        # Get event endDate for countdown timer
+        event_end_date = event_data.get("endDate", "")
+        
         return jsonify({
             'status': 'success',
             'event_slug': event_slug,
+            'endDate': event_end_date,  # Event resolution time
             'markets_count': len(markets_list),
             'markets': markets_list
         }), 200

@@ -214,6 +214,7 @@ export const marketOracleApi = {
   }): Promise<{
     status: string;
     event_slug: string;
+    endDate?: string;  // Event resolution time (ISO 8601 format)
     markets_count: number;
     markets: Array<{
       id: string;
