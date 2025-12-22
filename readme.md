@@ -144,7 +144,10 @@ Future improvements and features we'd like to implement:
 
 - [ ] **Telegram-based price signals** - Integrate Telegram bot to send real-time price signals and alerts based on analysis results
 - [ ] **Database integration** - Migrate from file-based storage to PostgreSQL database for better data management, querying, and persistence
-- [ ] *More features coming soon...*
+- [ ] **Polymarket data source integration** - Integrate Polymarket as a datasource for prediction market data and insights
+- [ ] **Polymarket betting bot module** - Build an automated betting bot module that can place bets on Polymarket based on analysis predictions
+- [ ] **Kraken realtime chart data** - Integrate Kraken (or other exchange) realtime chart data for live market analysis and visualization
+- [ ] **Kraken trading bot module** - Develop an automated trading bot module that can execute trades on Kraken based on analysis signals
 
 Have ideas? We'd love to hear them! See [Contributing](#-contributing) below.
 
