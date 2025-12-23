@@ -49,6 +49,11 @@ export default function MarketDashboard({
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isFullscreenOpen, setIsFullscreenOpen] = useState(false);
+  
+  // AI Tracking state
+  const [trackingEnabled, setTrackingEnabled] = useState(false);
+  const [polymarketAutoData, setPolymarketAutoData] = useState<any>(null);
+  const [polymarketConfig, setPolymarketConfig] = useState<{ url?: string; slug?: string } | null>(null);
 
   // Fetch data from API or use provided CSV data
   useEffect(() => {
@@ -370,14 +375,30 @@ export default function MarketDashboard({
                 {/* Tracking Modules - 2/3 width */}
                 <div className="lg:col-span-2 flex flex-col h-full min-h-0">
                   <div className="flex-1 overflow-y-auto space-y-4 pr-2 pb-4">
-                    <PolymarketTracking />
+                    <PolymarketTracking
+                      trackingEnabled={trackingEnabled}
+                      autoModeData={polymarketAutoData}
+                      onDataUpdate={(data) => setPolymarketAutoData(data)}
+                      onConfigChange={setPolymarketConfig}
+                    />
                     <ComingSoonModules />
                   </div>
                 </div>
                 
                 {/* Chat Module - 1/3 width */}
                 <div className="lg:col-span-1 h-full min-h-0 pb-4">
-                  <TrackingChat />
+                  <TrackingChat
+                    analysisId={analysisId}
+                    trackingEnabled={trackingEnabled}
+                    onTrackingEnabledChange={setTrackingEnabled}
+                    onAutoModeData={(data) => {
+                      // Handle auto mode data from TrackingChat
+                      if (data && data.status === "success" && data.event_slug) {
+                        setPolymarketAutoData(data);
+                      }
+                    }}
+                    polymarketConfig={polymarketConfig}
+                  />
                 </div>
               </div>
             </TabsContent>

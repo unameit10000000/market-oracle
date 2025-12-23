@@ -265,5 +265,154 @@ export const marketOracleApi = {
       throw error;
     }
   },
+
+  /**
+   * Start auto thinking mode
+   */
+  async startThinking(options: {
+    interval: string;
+    enabled_modules: string[];
+    analysis_id: string;
+    chat_history: Array<{ role: "user" | "assistant"; content: string }>;
+  }): Promise<{
+    status: string;
+    message: string;
+    next_fetch_at: string;
+  }> {
+    console.log(`[MarketOracleAPI] Starting auto thinking:`, options);
+    try {
+      const response = await apiClient.post<{
+        status: string;
+        message: string;
+        next_fetch_at: string;
+      }>("/ai-tracking/start-thinking", options);
+      return response;
+    } catch (error) {
+      console.error(`[MarketOracleAPI] Error starting auto thinking:`, error);
+      throw error;
+    }
+  },
+
+  /**
+   * Stop auto thinking mode
+   */
+  async stopThinking(analysisId: string): Promise<{
+    status: string;
+    message: string;
+  }> {
+    console.log(`[MarketOracleAPI] Stopping auto thinking for: ${analysisId}`);
+    try {
+      const response = await apiClient.post<{
+        status: string;
+        message: string;
+      }>("/ai-tracking/stop-thinking", {
+        analysis_id: analysisId,
+      });
+      return response;
+    } catch (error) {
+      console.error(`[MarketOracleAPI] Error stopping auto thinking:`, error);
+      throw error;
+    }
+  },
+
+  /**
+   * Fetch analysis with module data (auto mode)
+   */
+  async fetchAnalysis(options: {
+    analysis_id: string;
+    enabled_modules: string[];
+    chat_history: Array<{ role: "user" | "assistant"; content: string }>;
+    polymarket_config?: {
+      url?: string;
+      slug?: string;
+    };
+  }): Promise<{
+    ai_response: {
+      content: string;
+      timestamp: string;
+    };
+    polymarket_response?: {
+      status: string;
+      event_slug: string;
+      endDate?: string;
+      markets_count: number;
+      markets: Array<{
+        id: string;
+        question?: string;
+        groupItemTitle?: string;
+        details: {
+          active: boolean;
+          closed: boolean;
+          outcomes: string;
+          outcomePrices: string;
+          volume: string;
+        };
+      }>;
+      error?: string;
+    };
+  }> {
+    console.log(`[MarketOracleAPI] Fetching analysis:`, options);
+    try {
+      const response = await apiClient.post<{
+        ai_response: {
+          content: string;
+          timestamp: string;
+        };
+        polymarket_response?: {
+          status: string;
+          event_slug: string;
+          endDate?: string;
+          markets_count: number;
+          markets: Array<{
+            id: string;
+            question?: string;
+            groupItemTitle?: string;
+            details: {
+              active: boolean;
+              closed: boolean;
+              outcomes: string;
+              outcomePrices: string;
+              volume: string;
+            };
+          }>;
+          error?: string;
+        };
+      }>("/ai-tracking/fetch-analysis", options);
+      return response;
+    } catch (error) {
+      console.error(`[MarketOracleAPI] Error fetching analysis:`, error);
+      throw error;
+    }
+  },
+
+  /**
+   * Send manual chat message
+   */
+  async sendChatMessage(options: {
+    analysis_id: string;
+    message: string;
+    chat_history: Array<{ role: "user" | "assistant"; content: string }>;
+    enabled_modules: string[];
+    polymarket_data?: any;
+  }): Promise<{
+    ai_response: {
+      content: string;
+      timestamp: string;
+    };
+  }> {
+    console.log(`[MarketOracleAPI] Sending chat message:`, options);
+    try {
+      const response = await apiClient.post<{
+        ai_response: {
+          content: string;
+          timestamp: string;
+        };
+      }>("/ai-tracking/chat", options);
+      return response;
+    } catch (error) {
+      console.error(`[MarketOracleAPI] Error sending chat message:`, error);
+      throw error;
+    }
+  },
 };
 

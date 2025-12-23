@@ -46,7 +46,19 @@ interface PolymarketMarketsResponse {
   error?: string;
 }
 
-export default function PolymarketTracking() {
+interface PolymarketTrackingProps {
+  trackingEnabled?: boolean;
+  autoModeData?: PolymarketMarketsResponse | null;
+  onDataUpdate?: (data: PolymarketMarketsResponse) => void;
+  onConfigChange?: (config: { url?: string; slug?: string } | null) => void;
+}
+
+export default function PolymarketTracking({
+  trackingEnabled = false,
+  autoModeData = null,
+  onDataUpdate,
+  onConfigChange,
+}: PolymarketTrackingProps = {}) {
   const [enabled, setEnabled] = useState(false);
   const [inputValue, setInputValue] = useState("");
   const [inputType, setInputType] = useState<"url" | "slug">("url");
@@ -58,6 +70,16 @@ export default function PolymarketTracking() {
   const [timezone, setTimezone] = useState<string>(Intl.DateTimeFormat().resolvedOptions().timeZone);
   const [timeRemaining, setTimeRemaining] = useState<{ hours: number; minutes: number; seconds: number } | null>(null);
   const [currentTime, setCurrentTime] = useState<string>("");
+
+  // Update markets data when auto mode data is provided
+  useEffect(() => {
+    if (trackingEnabled && autoModeData) {
+      setMarketsData(autoModeData);
+      if (onDataUpdate) {
+        onDataUpdate(autoModeData);
+      }
+    }
+  }, [trackingEnabled, autoModeData, onDataUpdate]);
 
   const handleToggle = async () => {
     // If enabling, check for API keys first
@@ -126,6 +148,13 @@ export default function PolymarketTracking() {
       if (response.status === "success") {
         if (response.markets && response.markets.length > 0) {
           setMarketsData(response);
+          // Notify parent of config change
+          if (onConfigChange) {
+            const config = inputType === "url" 
+              ? { url: inputValue.trim() }
+              : { slug: inputValue.trim() };
+            onConfigChange(config);
+          }
         } else {
           setError("No markets found for this event. The event may not have any markets available.");
         }
@@ -310,7 +339,7 @@ export default function PolymarketTracking() {
                 />
                 <Button
                   onClick={handleFetchMarkets}
-                  disabled={isLoading || !inputValue.trim()}
+                  disabled={isLoading || !inputValue.trim() || trackingEnabled}
                 >
                   {isLoading ? (
                     <>
@@ -532,7 +561,9 @@ export default function PolymarketTracking() {
             {!isLoading && !error && !marketsData && (
               <Alert>
                 <AlertDescription>
-                  Enter a Polymarket URL or event slug above and click "Fetch Markets" to load market data.
+                  {trackingEnabled
+                    ? "Auto mode is active. Market data will be fetched automatically."
+                    : "Enter a Polymarket URL or event slug above and click \"Fetch Markets\" to load market data."}
                 </AlertDescription>
               </Alert>
             )}

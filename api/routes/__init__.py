@@ -11,7 +11,7 @@ app = Flask(__name__)
 CORS(app, origins=["http://localhost:3000", "http://127.0.0.1:3000"])
 
 # Import all route modules to register routes
-from . import main_routes, poly_routes, websearch_routes
+from . import main_routes, poly_routes, websearch_routes, ai_tracking_routes
 
 __all__ = ['app']
 
