@@ -430,7 +430,7 @@ export default function PolymarketTracking() {
                     const chancePercentValue = yesPrice * 100;
                     let chancePercent: string;
                     if (chancePercentValue < 1) {
-                      chancePercent = chancePercentValue < 0.1 ? "<1%" : chancePercentValue.toFixed(1);
+                      chancePercent = chancePercentValue < 0.1 ? "<1" : chancePercentValue.toFixed(1);
                     } else {
                       // Round to nearest whole number
                       chancePercent = Math.round(chancePercentValue).toString();
