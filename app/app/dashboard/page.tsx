@@ -22,14 +22,16 @@ export default function DashboardPage() {
   }, [analysisId]);
 
   return (
-    <main className="min-h-screen bg-background pt-4">
+    <main className="h-screen bg-background pt-4 overflow-hidden flex flex-col">
       <div className="absolute top-4 right-4 z-10">
         <ThemeToggle />
       </div>
-      <MarketDashboard
-        csvData={csvData}
-        analysisId={analysisId || undefined}
-      />
+      <div className="flex-1 min-h-0">
+        <MarketDashboard
+          csvData={csvData}
+          analysisId={analysisId || undefined}
+        />
+      </div>
     </main>
   );
 }

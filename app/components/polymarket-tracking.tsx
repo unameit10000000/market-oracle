@@ -407,14 +407,45 @@ export default function PolymarketTracking() {
                     const prices = parsePrices(market.details.outcomePrices);
                     const isResolved = market.details.closed;
                     
+                    // Find the index of "Yes" outcome (case-insensitive)
+                    const yesIndex = outcomes.findIndex((outcome: string) => 
+                      outcome.toLowerCase() === "yes"
+                    );
+                    const noIndex = outcomes.findIndex((outcome: string) => 
+                      outcome.toLowerCase() === "no"
+                    );
+                    
+                    // Get prices - use index if found, otherwise fallback to first/second
+                    const yesPrice = yesIndex >= 0 && prices[yesIndex] !== undefined 
+                      ? prices[yesIndex] 
+                      : prices[0] ?? 0;
+                    const noPrice = noIndex >= 0 && prices[noIndex] !== undefined 
+                      ? prices[noIndex] 
+                      : prices[1] ?? 0;
+                    
                     // Calculate chance percentage (Yes outcome probability)
-                    const yesPrice = prices[0] ?? 0;
-                    const noPrice = prices[1] ?? 0;
-                    const chancePercent = (yesPrice * 100).toFixed(1);
+                    // Match Polymarket's display format exactly:
+                    // - For values >= 1%: round to nearest whole number
+                    // - For values < 1%: show as "<1%" or with 1 decimal if needed
+                    const chancePercentValue = yesPrice * 100;
+                    let chancePercent: string;
+                    if (chancePercentValue < 1) {
+                      chancePercent = chancePercentValue < 0.1 ? "<1%" : chancePercentValue.toFixed(1);
+                    } else {
+                      // Round to nearest whole number
+                      chancePercent = Math.round(chancePercentValue).toString();
+                    }
                     
                     // Calculate buy prices in cents
-                    const buyYesCents = (yesPrice * 100).toFixed(1);
-                    const buyNoCents = (noPrice * 100).toFixed(1);
+                    // Polymarket shows buy prices with 1 decimal for values < 10¢, whole numbers for >= 10¢
+                    const buyYesCentsValue = yesPrice * 100;
+                    const buyNoCentsValue = noPrice * 100;
+                    const buyYesCents = buyYesCentsValue < 10 
+                      ? buyYesCentsValue.toFixed(1)
+                      : Math.round(buyYesCentsValue).toString();
+                    const buyNoCents = buyNoCentsValue < 10 
+                      ? buyNoCentsValue.toFixed(1)
+                      : Math.round(buyNoCentsValue).toString();
                     
                     // Get price label (prefer groupItemTitle, fallback to extracted from question)
                     const priceLabel = market.groupItemTitle || extractOutcomeLabel(market.question);
@@ -480,8 +511,8 @@ export default function PolymarketTracking() {
                             {/* Column 3: Buy Yes/No Prices */}
                             <div className="flex flex-col justify-center space-y-2">
                               <div className="flex items-center justify-between p-2 bg-teal-500/10 border-2 border-teal-500 rounded-md">
-                                <span className="text-sm font-medium text-teal-600 dark:text-teal-400">Buy No:</span>
-                                <span className="text-sm font-semibold text-teal-600 dark:text-teal-400">{buyNoCents}¢</span>
+                                <span className="text-sm font-medium text-teal-600 dark:text-teal-400">Buy Yes:</span>
+                                <span className="text-sm font-semibold text-teal-600 dark:text-teal-400">{buyYesCents}¢</span>
                               </div>
                               <div className="flex items-center justify-between p-2 bg-red-500/10 border-2 border-red-500 rounded-md">
                                 <span className="text-sm font-medium text-red-600 dark:text-red-400">Buy No:</span>

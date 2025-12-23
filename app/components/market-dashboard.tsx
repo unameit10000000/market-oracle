@@ -19,6 +19,8 @@ import EventTimeline from "@/components/event-timeline";
 import DashboardCharts from "@/components/dashboard-charts";
 import DataTable from "@/components/data-table";
 import PolymarketTracking from "@/components/polymarket-tracking";
+import TrackingChat from "@/components/tracking-chat";
+import ComingSoonModules from "@/components/coming-soon-modules";
 import { Input } from "@/components/ui/input";
 import { Search, Maximize2 } from "lucide-react";
 import {
@@ -233,10 +235,10 @@ export default function MarketDashboard({
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="space-y-6">
+    <div className="container mx-auto px-4 pt-4 pb-0 h-full flex flex-col">
+      <div className="flex flex-col flex-1 min-h-0">
         {/* Filters */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-4 flex-shrink-0">
           <Select value={tokenFilter} onValueChange={setTokenFilter}>
             <SelectTrigger>
               <SelectValue placeholder="Select Token" />
@@ -307,65 +309,80 @@ export default function MarketDashboard({
           </div>
         </div>
 
-        <Tabs defaultValue="price-targets" className="w-full">
-          <TabsList className="grid w-full grid-cols-5 mb-4">
-            <TabsTrigger value="price-targets">Price Targets</TabsTrigger>
-            <TabsTrigger value="timeline">Timeline</TabsTrigger>
-            <TabsTrigger value="charts">Charts</TabsTrigger>
-            <TabsTrigger value="data">Raw Data</TabsTrigger>
-            <TabsTrigger value="tracking">Tracking</TabsTrigger>
-          </TabsList>
+        <div className="flex-1 min-h-0 flex flex-col">
+          <Tabs defaultValue="price-targets" className="w-full flex flex-col flex-1 min-h-0">
+            <TabsList className="grid w-full grid-cols-5 mb-4 flex-shrink-0">
+              <TabsTrigger value="price-targets">Price Targets</TabsTrigger>
+              <TabsTrigger value="timeline">Timeline</TabsTrigger>
+              <TabsTrigger value="charts">Charts</TabsTrigger>
+              <TabsTrigger value="data">Raw Data</TabsTrigger>
+              <TabsTrigger value="tracking">Tracking</TabsTrigger>
+            </TabsList>
 
-          <TabsContent value="price-targets">
-            <Card>
-              <CardHeader>
-                <CardTitle>Price Targets & Projections</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <PriceTargets data={filteredData} />
-              </CardContent>
-            </Card>
-          </TabsContent>
+            <TabsContent value="price-targets" className="flex-1 overflow-y-auto">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Price Targets & Projections</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <PriceTargets data={filteredData} />
+                </CardContent>
+              </Card>
+            </TabsContent>
 
-          <TabsContent value="timeline">
-            <Card>
-              <CardHeader>
-                <CardTitle>Event Timeline</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <EventTimeline data={filteredData} />
-              </CardContent>
-            </Card>
-          </TabsContent>
+            <TabsContent value="timeline" className="flex-1 overflow-y-auto">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Event Timeline</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <EventTimeline data={filteredData} />
+                </CardContent>
+              </Card>
+            </TabsContent>
 
-          <TabsContent value="charts">
-            <DashboardCharts data={filteredData} />
-          </TabsContent>
+            <TabsContent value="charts" className="flex-1 overflow-y-auto">
+              <DashboardCharts data={filteredData} />
+            </TabsContent>
 
-          <TabsContent value="data">
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle>Data Table</CardTitle>
-                  <button
-                    onClick={() => setIsFullscreenOpen(true)}
-                    className="p-2 rounded-md hover:bg-muted transition-colors"
-                    title="Open in fullscreen"
-                  >
-                    <Maximize2 className="h-5 w-5" />
-                  </button>
+            <TabsContent value="data" className="flex-1 overflow-y-auto">
+              <Card>
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <CardTitle>Data Table</CardTitle>
+                    <button
+                      onClick={() => setIsFullscreenOpen(true)}
+                      className="p-2 rounded-md hover:bg-muted transition-colors"
+                      title="Open in fullscreen"
+                    >
+                      <Maximize2 className="h-5 w-5" />
+                    </button>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <DataTable data={filteredData} analysisId={analysisId} />
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="tracking" className="flex-1 min-h-0 pb-4">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 h-full">
+                {/* Tracking Modules - 2/3 width */}
+                <div className="lg:col-span-2 flex flex-col h-full min-h-0">
+                  <div className="flex-1 overflow-y-auto space-y-4 pr-2 pb-4">
+                    <PolymarketTracking />
+                    <ComingSoonModules />
+                  </div>
                 </div>
-              </CardHeader>
-              <CardContent>
-                <DataTable data={filteredData} analysisId={analysisId} />
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="tracking">
-            <PolymarketTracking />
-          </TabsContent>
-        </Tabs>
+                
+                {/* Chat Module - 1/3 width */}
+                <div className="lg:col-span-1 h-full min-h-0 pb-4">
+                  <TrackingChat />
+                </div>
+              </div>
+            </TabsContent>
+          </Tabs>
+        </div>
 
         {/* Fullscreen Data Table Dialog */}
         <Dialog open={isFullscreenOpen} onOpenChange={setIsFullscreenOpen}>

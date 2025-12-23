@@ -202,6 +202,7 @@ def ask_ai():
         event_context = f"""Event Details:
 - Token: {event.get('Token', 'N/A')}
 - Date: {event.get('Date', 'N/A')}
+- Resolve Time: {event.get('Resolve_Time', 'N/A')}
 - Event Type: {event.get('Event_Type', 'N/A')}
 - Title: {event.get('Title', event.get('Event_Description', 'N/A'))}
 - Description: {event.get('Description', event.get('Event_Description', 'N/A'))}

@@ -169,167 +169,179 @@ export default function DataTable({ data, hideExport = false, analysisId }: Data
           </Button>
         </div>
       )}
-      <Table>
+      <Table className="text-xs">
         <TableHeader>
           <TableRow>
-            <TableHead className="cursor-pointer hover:bg-muted" onClick={() => handleSort("Token", "string")}>
+            <TableHead className="cursor-pointer hover:bg-muted text-xs" onClick={() => handleSort("Token", "string")}>
               Token
               {sortColumn === "Token" && (
                 <span className="ml-1">
                   {sortDirection === "asc" ? (
-                    <ChevronUp className="inline h-4 w-4" />
+                    <ChevronUp className="inline h-3 w-3" />
                   ) : (
-                    <ChevronDown className="inline h-4 w-4" />
+                    <ChevronDown className="inline h-3 w-3" />
                   )}
                 </span>
               )}
             </TableHead>
-            <TableHead className="cursor-pointer hover:bg-muted" onClick={() => handleSort("Date", "date")}>
+            <TableHead className="cursor-pointer hover:bg-muted text-xs" onClick={() => handleSort("Date", "date")}>
               Date
               {sortColumn === "Date" && (
                 <span className="ml-1">
                   {sortDirection === "asc" ? (
-                    <ChevronUp className="inline h-4 w-4" />
+                    <ChevronUp className="inline h-3 w-3" />
                   ) : (
-                    <ChevronDown className="inline h-4 w-4" />
+                    <ChevronDown className="inline h-3 w-3" />
                   )}
                 </span>
               )}
             </TableHead>
-            <TableHead className="cursor-pointer hover:bg-muted" onClick={() => handleSort("Event_Type", "string")}>
+            <TableHead className="cursor-pointer hover:bg-muted text-xs" onClick={() => handleSort("Resolve_Time", "string")}>
+              Resolve Time
+              {sortColumn === "Resolve_Time" && (
+                <span className="ml-1">
+                  {sortDirection === "asc" ? (
+                    <ChevronUp className="inline h-3 w-3" />
+                  ) : (
+                    <ChevronDown className="inline h-3 w-3" />
+                  )}
+                </span>
+              )}
+            </TableHead>
+            <TableHead className="cursor-pointer hover:bg-muted text-xs" onClick={() => handleSort("Event_Type", "string")}>
               Event Type
               {sortColumn === "Event_Type" && (
                 <span className="ml-1">
                   {sortDirection === "asc" ? (
-                    <ChevronUp className="inline h-4 w-4" />
+                    <ChevronUp className="inline h-3 w-3" />
                   ) : (
-                    <ChevronDown className="inline h-4 w-4" />
+                    <ChevronDown className="inline h-3 w-3" />
                   )}
                 </span>
               )}
             </TableHead>
-            <TableHead className="cursor-pointer hover:bg-muted" onClick={() => handleSort("Forecast", "string")}>
+            <TableHead className="cursor-pointer hover:bg-muted text-xs" onClick={() => handleSort("Forecast", "string")}>
               Forecast
               {sortColumn === "Forecast" && (
                 <span className="ml-1">
                   {sortDirection === "asc" ? (
-                    <ChevronUp className="inline h-4 w-4" />
+                    <ChevronUp className="inline h-3 w-3" />
                   ) : (
-                    <ChevronDown className="inline h-4 w-4" />
+                    <ChevronDown className="inline h-3 w-3" />
                   )}
                 </span>
               )}
             </TableHead>
-            <TableHead className="cursor-pointer hover:bg-muted" onClick={() => handleSort("Timeframe", "string")}>
+            <TableHead className="cursor-pointer hover:bg-muted text-xs" onClick={() => handleSort("Timeframe", "string")}>
               Timeframe
               {sortColumn === "Timeframe" && (
                 <span className="ml-1">
                   {sortDirection === "asc" ? (
-                    <ChevronUp className="inline h-4 w-4" />
+                    <ChevronUp className="inline h-3 w-3" />
                   ) : (
-                    <ChevronDown className="inline h-4 w-4" />
+                    <ChevronDown className="inline h-3 w-3" />
                   )}
                 </span>
               )}
             </TableHead>
-            <TableHead className="cursor-pointer hover:bg-muted" onClick={() => handleSort("Title", "string")}>
+            <TableHead className="cursor-pointer hover:bg-muted text-xs" onClick={() => handleSort("Title", "string")}>
               Title
               {sortColumn === "Title" && (
                 <span className="ml-1">
                   {sortDirection === "asc" ? (
-                    <ChevronUp className="inline h-4 w-4" />
+                    <ChevronUp className="inline h-3 w-3" />
                   ) : (
-                    <ChevronDown className="inline h-4 w-4" />
+                    <ChevronDown className="inline h-3 w-3" />
                   )}
                 </span>
               )}
             </TableHead>
             <TableHead
-              className="cursor-pointer hover:bg-muted"
+              className="cursor-pointer hover:bg-muted text-xs"
               onClick={() => handleSort("Description", "string")}
             >
               Description
               {sortColumn === "Description" && (
                 <span className="ml-1">
                   {sortDirection === "asc" ? (
-                    <ChevronUp className="inline h-4 w-4" />
+                    <ChevronUp className="inline h-3 w-3" />
                   ) : (
-                    <ChevronDown className="inline h-4 w-4" />
+                    <ChevronDown className="inline h-3 w-3" />
                   )}
                 </span>
               )}
             </TableHead>
-            <TableHead className="cursor-pointer hover:bg-muted" onClick={() => handleSort("Event_Category", "string")}>
+            <TableHead className="cursor-pointer hover:bg-muted text-xs" onClick={() => handleSort("Event_Category", "string")}>
               Category
               {sortColumn === "Event_Category" && (
                 <span className="ml-1">
                   {sortDirection === "asc" ? (
-                    <ChevronUp className="inline h-4 w-4" />
+                    <ChevronUp className="inline h-3 w-3" />
                   ) : (
-                    <ChevronDown className="inline h-4 w-4" />
+                    <ChevronDown className="inline h-3 w-3" />
                   )}
                 </span>
               )}
             </TableHead>
-            <TableHead className="cursor-pointer hover:bg-muted" onClick={() => handleSort("Price_Level", "price")}>
+            <TableHead className="cursor-pointer hover:bg-muted text-xs" onClick={() => handleSort("Price_Level", "price")}>
               Price Level
               {sortColumn === "Price_Level" && (
                 <span className="ml-1">
                   {sortDirection === "asc" ? (
-                    <ChevronUp className="inline h-4 w-4" />
+                    <ChevronUp className="inline h-3 w-3" />
                   ) : (
-                    <ChevronDown className="inline h-4 w-4" />
+                    <ChevronDown className="inline h-3 w-3" />
                   )}
                 </span>
               )}
             </TableHead>
-            <TableHead className="cursor-pointer hover:bg-muted" onClick={() => handleSort("Price_Type", "string")}>
+            <TableHead className="cursor-pointer hover:bg-muted text-xs" onClick={() => handleSort("Price_Type", "string")}>
               Price Type
               {sortColumn === "Price_Type" && (
                 <span className="ml-1">
                   {sortDirection === "asc" ? (
-                    <ChevronUp className="inline h-4 w-4" />
+                    <ChevronUp className="inline h-3 w-3" />
                   ) : (
-                    <ChevronDown className="inline h-4 w-4" />
+                    <ChevronDown className="inline h-3 w-3" />
                   )}
                 </span>
               )}
             </TableHead>
-            <TableHead className="cursor-pointer hover:bg-muted" onClick={() => handleSort("Pattern", "string")}>
+            <TableHead className="cursor-pointer hover:bg-muted text-xs" onClick={() => handleSort("Pattern", "string")}>
               Pattern
               {sortColumn === "Pattern" && (
                 <span className="ml-1">
                   {sortDirection === "asc" ? (
-                    <ChevronUp className="inline h-4 w-4" />
+                    <ChevronUp className="inline h-3 w-3" />
                   ) : (
-                    <ChevronDown className="inline h-4 w-4" />
+                    <ChevronDown className="inline h-3 w-3" />
                   )}
                 </span>
               )}
             </TableHead>
-            <TableHead className="cursor-pointer hover:bg-muted" onClick={() => handleSort("Content_Source", "string")}>
+            <TableHead className="cursor-pointer hover:bg-muted text-xs" onClick={() => handleSort("Content_Source", "string")}>
               Content Source
               {sortColumn === "Content_Source" && (
                 <span className="ml-1">
                   {sortDirection === "asc" ? (
-                    <ChevronUp className="inline h-4 w-4" />
+                    <ChevronUp className="inline h-3 w-3" />
                   ) : (
-                    <ChevronDown className="inline h-4 w-4" />
+                    <ChevronDown className="inline h-3 w-3" />
                   )}
                 </span>
               )}
             </TableHead>
             <TableHead
-              className="cursor-pointer hover:bg-muted"
+              className="cursor-pointer hover:bg-muted text-xs"
               onClick={() => handleSort("Confidence_Level", "confidence")}
             >
               Confidence
               {sortColumn === "Confidence_Level" && (
                 <span className="ml-1">
                   {sortDirection === "asc" ? (
-                    <ChevronUp className="inline h-4 w-4" />
+                    <ChevronUp className="inline h-3 w-3" />
                   ) : (
-                    <ChevronDown className="inline h-4 w-4" />
+                    <ChevronDown className="inline h-3 w-3" />
                   )}
                 </span>
               )}
@@ -340,15 +352,16 @@ export default function DataTable({ data, hideExport = false, analysisId }: Data
           {sortedData.map((row, index) => (
             <TableRow
               key={index}
-              className="cursor-pointer hover:bg-muted/50 transition-colors"
+              className="cursor-pointer hover:bg-muted/50 transition-colors text-xs"
               onClick={() => handleRowClick(row)}
             >
-              <TableCell className="relative">
+              <TableCell className="relative text-xs">
                 {row.Token}
               </TableCell>
-              <TableCell>{row.Date}</TableCell>
-              <TableCell>{row.Event_Type}</TableCell>
-              <TableCell>
+              <TableCell className="text-xs">{row.Date}</TableCell>
+              <TableCell className="text-xs">{row.Resolve_Time || "N/A"}</TableCell>
+              <TableCell className="text-xs">{row.Event_Type}</TableCell>
+              <TableCell className="text-xs">
                 <span
                   className={
                     row.Forecast?.includes("DUMP")
@@ -363,17 +376,17 @@ export default function DataTable({ data, hideExport = false, analysisId }: Data
                   {row.Forecast || "N/A"}
                 </span>
               </TableCell>
-              <TableCell>{row.Timeframe}</TableCell>
-              <TableCell className="max-w-[200px] truncate">{row.Title || "N/A"}</TableCell>
-              <TableCell className="max-w-[200px] truncate">
+              <TableCell className="text-xs">{row.Timeframe}</TableCell>
+              <TableCell className="max-w-[200px] truncate text-xs">{row.Title || "N/A"}</TableCell>
+              <TableCell className="max-w-[200px] truncate text-xs">
                 {row.Description || row.Event_Description || "N/A"}
               </TableCell>
-              <TableCell>{row.Event_Category || "N/A"}</TableCell>
-              <TableCell>{row.Price_Level}</TableCell>
-              <TableCell>{row.Price_Type}</TableCell>
-              <TableCell>{row.Pattern}</TableCell>
-              <TableCell>{row.Content_Source}</TableCell>
-              <TableCell>
+              <TableCell className="text-xs">{row.Event_Category || "N/A"}</TableCell>
+              <TableCell className="text-xs">{row.Price_Level}</TableCell>
+              <TableCell className="text-xs">{row.Price_Type}</TableCell>
+              <TableCell className="text-xs">{row.Pattern}</TableCell>
+              <TableCell className="text-xs">{row.Content_Source}</TableCell>
+              <TableCell className="text-xs">
                 <span
                   className={
                     row.Confidence_Level === "High"
@@ -393,7 +406,7 @@ export default function DataTable({ data, hideExport = false, analysisId }: Data
 
       {/* Ask AI Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto text-xs">
           <DialogHeader>
             <DialogTitle>Ask AI</DialogTitle>
             <DialogDescription>

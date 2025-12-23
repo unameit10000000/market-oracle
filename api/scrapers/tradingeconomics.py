@@ -283,9 +283,17 @@ def scrape_tradingeconomics(url: Optional[str] = None) -> List[Dict[str, Any]]:
                             elif not previous and text not in [actual, forecast] and ('%' in text or any(c.isdigit() for c in text)):
                                 previous = text
                 
+                # Calculate resolve_time: combine date + time
+                resolve_time = 'N/A'
+                if date_str and time_str:
+                    resolve_time = f"{date_str} {time_str}"
+                elif date_str:
+                    resolve_time = date_str
+                
                 event_data = {
                     'date': date_str,
                     'time': time_str,
+                    'resolve_time': resolve_time,
                     'title': event_name[:50],  # Max 50 chars
                     'description': f"{event_name} - {category}"[:100] if category else event_name[:100],  # Max 100 chars
                     'country': country,

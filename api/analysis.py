@@ -130,12 +130,16 @@ Format your response with:
 Recent events to analyze:
 """
     
-    # Add real events to prompt if provided
+    # Add real events to prompt if provided (include resolve_time for LISTED events)
     for event in recent_events_data:
         date = event.get('date', 'N/A')
+        resolve_time = event.get('resolve_time', event.get('time', ''))
         title = event.get('title', 'N/A')
         description = event.get('description', event.get('title', 'N/A'))
-        prompt += f"\n- {date}: {title} - {description}\n"
+        if resolve_time and resolve_time != 'N/A':
+            prompt += f"\n- {date} {resolve_time}: {title} - {description}\n"
+        else:
+            prompt += f"\n- {date}: {title} - {description}\n"
     
     try:
         with anthropic_client.messages.stream(
@@ -188,9 +192,11 @@ def process_events(
     historic_events_text = historic_events if historic_events else "No historic events analysis provided."
     predicted_events_text = predicted_events if predicted_events else "No predicted events provided."
     
-    # Format new events from actual scraped data
+    # Format new events from actual scraped data (include resolve_time for LISTED events)
     if new_events and len(new_events) > 0:
         new_events_str = "\n".join([
+            f"- {e.get('date', 'N/A')} {e.get('resolve_time', e.get('time', 'N/A'))}: {e.get('title', 'N/A')} - {e.get('description', 'N/A')} (Source: {e.get('source_url', 'N/A')})"
+            if e.get('resolve_time') != 'N/A' and e.get('resolve_time') else
             f"- {e.get('date', 'N/A')}: {e.get('title', 'N/A')} - {e.get('description', 'N/A')} (Source: {e.get('source_url', 'N/A')})"
             for e in new_events
         ])
@@ -245,7 +251,9 @@ You MUST structure your response exactly as follows:
 **<MONTH YEAR> - CRITICAL DATES:**
 
 For EACH event from the "New Events" section below, format exactly as:
-- <date>: <PREDICTION TYPE> (<magnitude>), <title> - <reasoning based on historical patterns>;
+- <date> <resolve_time>: <PREDICTION TYPE> (<magnitude>), <title> - <reasoning based on historical patterns>;
+
+IMPORTANT: Include the resolve_time (timestamp) ONLY for LISTED events from economic calendars (ForexFactory, TradingEconomics). For other events (Mentioned, Predicted), use "N/A" for resolve_time or omit it.
 
 PREDICTION TYPES (PRIORITIZE DIRECTIONAL PREDICTIONS):
 - PUMP, DUMP, MAJOR PUMP, MAJOR DUMP, CRITICAL PUMP, CRITICAL DUMP
@@ -267,9 +275,9 @@ REASONING:
 - Reference specific historical events and their outcomes
 
 Example formats (based on historical patterns):
-- 2025-12-18: PUMP IF CUT (4-6%), BOE Rate Decision - Historical: Rate cuts pump crypto 4-6% (2024 pattern);
-- 2025-12-18: DUMP IF STRONG (4-8%), US Retail Sales - Historical: Strong retail sales = Fed hawkish = crypto dumps (Dec 2024: -6%);
-- 2025-12-15: DUMP IF WEAK (3-5%), China Economic Data - Historical: Weak China data = global slowdown fears = dump (Aug 2015: -15%, Jan 2016: -22%);
+- 2025-12-18 2:00pm: PUMP IF CUT (4-6%), BOE Rate Decision - Historical: Rate cuts pump crypto 4-6% (2024 pattern);
+- 2025-12-18 8:30am: DUMP IF STRONG (4-8%), US Retail Sales - Historical: Strong retail sales = Fed hawkish = crypto dumps (Dec 2024: -6%);
+- 2025-12-15 3:00am: DUMP IF WEAK (3-5%), China Economic Data - Historical: Weak China data = global slowdown fears = dump (Aug 2015: -15%, Jan 2016: -22%);
 
 # Overall Assessment
 
@@ -313,7 +321,9 @@ Example formats (based on historical patterns):
    - Only use NEUTRAL when historical patterns show no clear direction
    - Match magnitude to historical precedents (if history shows 3-5%, use 3-5%, not 1-2%)
 
-5. Format each event as: <date>: <PREDICTION TYPE> (<magnitude>), <title> - <reasoning with historical reference>;
+5. Format each event as: <date> <resolve_time>: <PREDICTION TYPE> (<magnitude>), <title> - <reasoning with historical reference>;
+   - Include resolve_time ONLY for LISTED events (from economic calendars)
+   - For Mentioned/Predicted events, omit resolve_time or use "N/A"
 
 6. If transcripts are provided, extract predictions and scenarios from them in the transcript sections
 
@@ -575,11 +585,12 @@ You are an extractor: given a comprehensive market analysis text, produce a sing
 # IMPORTANT: MUST RETURN ONLY A SINGLE CODE BLOCK (```txt) CONTAINING THE CSV. DO NOT OUTPUT ANY EXPLANATION, MARKDOWN, OR ADDITIONAL TEXT.
 
 # REQUIRED CSV HEADER (MUST MATCH EXACTLY - case-sensitive, comma-separated):
-Token,Date,Event_Type,Forecast,Timeframe,Title,Description,Event_Category,Price_Level,Price_Type,Pattern,Content_Source,Confidence_Level
+Token,Date,Resolve_Time,Event_Type,Forecast,Timeframe,Title,Description,Event_Category,Price_Level,Price_Type,Pattern,Content_Source,Confidence_Level
 
 # FIELD DEFINITIONS (use EXACT values/formats):
 - Token: Cryptocurrency name (e.g., Bitcoin, Ethereum) or "General" for market-wide events.
 - Date: YYYY-MM-DD or "N/A" if no specific date.
+- Resolve_Time: Exact timestamp when event resolves (e.g., "2025-12-15 10:30pm", "2025-12-19 12:30 AM"). Use "N/A" for non-Listed events (Mentioned, Predicted) or when timestamp is not available. ONLY include timestamps for LISTED events from economic calendars.
 - Event_Type: one of EXACTLY: Listed, Mentioned, Predicted.
 - Forecast: Prediction type from Calendar Updates section - one of: NEUTRAL, DUMP, PUMP, VOLATILITY, MAJOR DUMP, MAJOR PUMP, CRITICAL DUMP, CRITICAL PUMP, DUMP IF WEAK, DUMP IF STRONG, PUMP IF CUT, PUMP IF WEAK, MAJOR VOLATILITY, CRITICAL VOLATILITY, or "N/A" if not found or unclear.
 - Timeframe: Past, Present, Future or "N/A".
@@ -610,7 +621,7 @@ Token,Date,Event_Type,Forecast,Timeframe,Title,Description,Event_Category,Price_
 
 # FORMATTING RULES (YOU MUST OBEY ALL OF THESE):
 1) The first line must be the exact header shown above and only that header.
-2) Every subsequent line is a data row; every row must contain exactly 13 comma-separated values (12 commas).
+2) Every subsequent line is a data row; every row must contain exactly 14 comma-separated values (13 commas).
 3) NEVER include commas within field values — replace commas with semicolons if needed.
 4) Use "N/A" for missing or inapplicable fields; never leave an empty field.
 5) Dates must use YYYY-MM-DD format when available.
@@ -628,12 +639,12 @@ Token,Date,Event_Type,Forecast,Timeframe,Title,Description,Event_Category,Price_
 - Prioritize extracting Forecast from Calendar Updates section when available.
 
 # FEW-SHOT EXAMPLES (exact CSV rows; follow these styles):
-Token,Date,Event_Type,Forecast,Timeframe,Title,Description,Event_Category,Price_Level,Price_Type,Pattern,Content_Source,Confidence_Level
-General,2025-12-14,Listed,NEUTRAL,Future,BusinessNZ Services Index (NZ),Minor regional data; limited crypto impact,Economic Data,N/A,N/A,N/A,ForexFactory,N/A
-General,2025-12-15,Listed,DUMP IF WEAK,Future,China Economic Data Cluster,Weak China data triggers global slowdown fears and crypto selloffs,Economic Data,N/A,N/A,N/A,Multiple,Medium
-Bitcoin,2025-12-19,Predicted,MAJOR VOLATILITY,Future,BOJ Policy Rate Decision,BOJ hawkish surprise = severe yen carry trade unwind = crypto crash,Regulatory,N/A,N/A,N/A,Analysis,High
+Token,Date,Resolve_Time,Event_Type,Forecast,Timeframe,Title,Description,Event_Category,Price_Level,Price_Type,Pattern,Content_Source,Confidence_Level
+General,2025-12-14,2025-12-14 10:30pm,Listed,NEUTRAL,Future,BusinessNZ Services Index (NZ),Minor regional data; limited crypto impact,Economic Data,N/A,N/A,N/A,ForexFactory,N/A
+General,2025-12-15,2025-12-15 3:00am,Listed,DUMP IF WEAK,Future,China Economic Data Cluster,Weak China data triggers global slowdown fears and crypto selloffs,Economic Data,N/A,N/A,N/A,Multiple,Medium
+Bitcoin,2025-12-19,N/A,Predicted,MAJOR VOLATILITY,Future,BOJ Policy Rate Decision,BOJ hawkish surprise = severe yen carry trade unwind = crypto crash,Regulatory,N/A,N/A,N/A,Analysis,High
 
-# FINAL CHECK: Before returning, ensure header matches exactly and every row has 13 values (12 commas). Return only the CSV inside a single ```txt code block.
+# FINAL CHECK: Before returning, ensure header matches exactly and every row has 14 values (13 commas). Return only the CSV inside a single ```txt code block.
 '''
     
     try:

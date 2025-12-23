@@ -155,6 +155,27 @@ def scrape_forexfactory(url: Optional[str] = None) -> List[Dict[str, Any]]:
                                     pass
                             
                             for event in day.get('events', []):
+                                # Get event-specific dateline (more accurate than day dateline)
+                                event_dateline = event.get('dateline', 0)
+                                time_label = event.get('timeLabel', '')
+                                
+                                # Calculate resolve_time: use event dateline if available, otherwise combine date + time
+                                resolve_time = 'N/A'
+                                if event_dateline:
+                                    try:
+                                        event_dt = datetime.fromtimestamp(event_dateline)
+                                        # Format as "2025-12-14 10:30pm" (matching timeLabel format)
+                                        hour = event_dt.strftime('%I').lstrip('0') or '12'
+                                        minute = event_dt.strftime('%M')
+                                        ampm = event_dt.strftime('%p').lower()
+                                        resolve_time = f"{event_dt.strftime('%Y-%m-%d')} {hour}:{minute}{ampm}"
+                                    except:
+                                        pass
+                                
+                                # Fallback: combine date + time if dateline not available
+                                if resolve_time == 'N/A' and time_label and date_str:
+                                    resolve_time = f"{date_str} {time_label}"
+                                
                                 event_data = {
                                     'date': date_str,
                                     'dateline': dateline,
@@ -163,7 +184,8 @@ def scrape_forexfactory(url: Optional[str] = None) -> List[Dict[str, Any]]:
                                     'country': event.get('country', ''),
                                     'currency': event.get('currency', ''),
                                     'impact': event.get('impactName', ''),
-                                    'time': event.get('timeLabel', ''),
+                                    'time': time_label,
+                                    'resolve_time': resolve_time,
                                     'actual': event.get('actual', ''),
                                     'forecast': event.get('forecast', ''),
                                     'previous': event.get('previous', ''),
